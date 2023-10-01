@@ -1,5 +1,5 @@
 import unittest
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt # type: ignore
 import networkx as nx  # type: ignore
 
 
