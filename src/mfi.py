@@ -13,8 +13,8 @@ It includes the following functions:
 from typing import List, Tuple
 import subprocess
 import os
-import networkx as nx  # type: ignore
 import matplotlib.pyplot as plt  # type: ignore
+import networkx as nx  # type: ignore
 
 
 def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
@@ -65,7 +65,6 @@ def run_solver() -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
     fill_edges = []
     with open(os.path.join(solver_path, "output.txt"), mode="r", encoding="utf-8") as file:
         lines = file.readlines()
-        num_lines = len(lines)
 
         for line in lines:
             vertex_1, vertex_2 = map(int, line.split())
@@ -73,12 +72,13 @@ def run_solver() -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
             row_2, col_2 = divmod(vertex_2 - 11, 10)
             fill_edges.append(((row_1, col_1), (row_2, col_2)))
 
-    print(f"Number of added edges: {num_lines}")
-
     return fill_edges
 
 
-def generate_and_solve(num_rows: int, num_columns: int) -> Tuple[nx.Graph, List[Tuple[int, int]]]:
+def generate_and_solve(
+    num_rows: int,
+    num_columns: int
+) -> Tuple[nx.Graph, list[tuple[tuple[int, int], tuple[int, int]]]]:
     """
     Calls `generate_grid_graph` to generate a graph and write it to a text file.
     Then, calls `run_solver` to find and return the fill edges for graph triangulation.
@@ -92,7 +92,7 @@ def generate_and_solve(num_rows: int, num_columns: int) -> Tuple[nx.Graph, List[
     """
 
     # Generate grid graph and save to graph.txt
-    graph = generate_grid_graph(num_rows, num_columns)
+    graph: nx.Graph = generate_grid_graph(num_rows, num_columns)
 
     # Run the solver and get fill edges
     fill_edges = run_solver()
@@ -100,26 +100,40 @@ def generate_and_solve(num_rows: int, num_columns: int) -> Tuple[nx.Graph, List[
     return graph, fill_edges
 
 
-# Example usage
-if __name__ == "__main__":
-    rows, columns = 5, 5
-    grid, chords = generate_and_solve(rows, columns)
-    print("The edges of the original graph:", grid.edges())
+def generate_triangulated_grid_graph(num_rows: int, num_columns: int) -> None:
+    """
+    Generates a grid graph with the specified number of rows and columns,
+    triangulates it, and then saves both the original and the triangulated graphs
+    as PNG images.
+
+    Parameters:
+        num_rows (int): The number of rows in the grid graph.
+        num_columns (int): The number of columns in the grid graph.
+
+    Raises:
+        RuntimeError: If the graph could not be successfully triangulated.
+    """
+    # Generate the grid graph and its fill edges
+    grid, chords = generate_and_solve(
+        num_rows=num_rows, num_columns=num_columns)
 
     # Plot and save the original graph
     plt.figure(figsize=(8, 6))
     nx.draw(grid, with_labels=True, font_weight='bold')
-    plt.savefig('3x4_grid.png')
-
-    print("Fill edges:", chords)
+    plt.savefig(f'{num_rows}x{num_columns}_grid.png')
 
     # Create the triangulated graph
     graph_triangulated = grid.copy()
     graph_triangulated.add_edges_from(chords)
-    # Check if the graph is triangulated (chordal)
-    print("Is the graph triangulated?", nx.is_chordal(graph_triangulated))
+
+    # Check if the graph is truly chordal (triangulated)
+    if not nx.is_chordal(graph_triangulated):
+        raise RuntimeError("The graph is not triangulated!")
 
     # Plot and save the triangulated graph
     plt.figure(figsize=(8, 6))
     nx.draw(graph_triangulated, with_labels=True, font_weight='bold')
-    plt.savefig('3x4_grid_triangulated.png')
+    plt.savefig(f'{num_rows}x{num_columns}_triangulated.png')
+
+
+generate_triangulated_grid_graph(num_rows=5, num_columns=6)
