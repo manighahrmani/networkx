@@ -45,14 +45,15 @@ def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
     return graph
 
 
-def run_solver() -> List[Tuple[int, int]]:
+def run_solver() -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
     """
     Executes a batch file to run a minimum fill-in solver.
     Reads the solver's output and returns the fill edges.
 
     Returns:
-        List[Tuple[int, int]]: List of fill edges.
+        List[Tuple[Tuple[int, int], Tuple[int, int]]]: List of fill edges.
     """
+
     # Define the path where run_solver.bat and graph.txt are located
     solver_path = "C:\\Users\\manig\\Downloads\\PACE2017-min-fill"
 
@@ -65,8 +66,12 @@ def run_solver() -> List[Tuple[int, int]]:
     with open(os.path.join(solver_path, "output.txt"), mode="r", encoding="utf-8") as file:
         lines = file.readlines()
         num_lines = len(lines)
-        fill_edges = [(int(line.split()[0]), int(line.split()[1]))
-                      for line in lines]
+
+        for line in lines:
+            vertex_1, vertex_2 = map(int, line.split())
+            row_1, col_1 = divmod(vertex_1 - 11, 10)
+            row_2, col_2 = divmod(vertex_2 - 11, 10)
+            fill_edges.append(((row_1, col_1), (row_2, col_2)))
 
     print(f"Number of added edges: {num_lines}")
 
@@ -111,6 +116,8 @@ if __name__ == "__main__":
     # Create the triangulated graph
     graph_triangulated = grid.copy()
     graph_triangulated.add_edges_from(chords)
+    # Check if the graph is triangulated (chordal)
+    print("Is the graph triangulated?", nx.is_chordal(graph_triangulated))
 
     # Plot and save the triangulated graph
     plt.figure(figsize=(8, 6))
