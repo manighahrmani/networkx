@@ -10,11 +10,17 @@ It includes the following functions:
 - generate_and_solve
 """
 
+import csv
 from typing import List, Tuple
 import subprocess
 import os
 import matplotlib.pyplot as plt  # type: ignore
 import networkx as nx  # type: ignore
+
+
+SOLVER_PATH = "C:\\Users\\manig\\Downloads\\PACE2017-min-fill"
+ROWS = 5
+MAX_COLUMNS = 7
 
 
 def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
@@ -33,7 +39,7 @@ def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
     # Generate the grid graph
     graph = nx.grid_2d_graph(num_rows, num_columns)
 
-    output_path = "C:\\Users\\manig\\Downloads\\PACE2017-min-fill\\graph.txt"
+    output_path = os.path.join(SOLVER_PATH, "graph.txt")
 
     # Open the file to write the edges
     with open(output_path, mode='w', encoding="utf-8") as file:
@@ -53,17 +59,13 @@ def run_solver() -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
     Returns:
         List[Tuple[Tuple[int, int], Tuple[int, int]]]: List of fill edges.
     """
-
-    # Define the path where run_solver.bat and graph.txt are located
-    solver_path = "C:\\Users\\manig\\Downloads\\PACE2017-min-fill"
-
     # Execute the batch file
-    subprocess.run(os.path.join(solver_path, "run_solver.bat"),
-                   shell=True, cwd=solver_path, check=True)
+    subprocess.run(os.path.join(SOLVER_PATH, "run_solver.bat"),
+                   shell=True, cwd=SOLVER_PATH, check=True)
 
     # Read the output and count lines
     fill_edges = []
-    with open(os.path.join(solver_path, "output.txt"), mode="r", encoding="utf-8") as file:
+    with open(os.path.join(SOLVER_PATH, "output.txt"), mode="r", encoding="utf-8") as file:
         lines = file.readlines()
 
         for line in lines:
@@ -95,45 +97,103 @@ def generate_and_solve(
     graph: nx.Graph = generate_grid_graph(num_rows, num_columns)
 
     # Run the solver and get fill edges
+    fill_edges: List[Tuple[Tuple[int, int], Tuple[int, int]]] = []
     fill_edges = run_solver()
 
     return graph, fill_edges
 
 
-def generate_triangulated_grid_graph(num_rows: int, num_columns: int) -> None:
+def generate_triangulated_grid_graph(
+        num_rows: int,
+        num_columns: int
+) -> Tuple[
+        nx.Graph,
+        List[Tuple[Tuple[int, int], Tuple[int, int]]],
+        nx.Graph,
+        List[Tuple[int, int]]
+]:
     """
-    Generates a grid graph with the specified number of rows and columns,
-    triangulates it, and then saves both the original and the triangulated graphs
-    as PNG images.
+    Generates a triangulated grid graph, plots and saves it.
+    Highlights the largest clique in the triangulated graph.
 
     Parameters:
         num_rows (int): The number of rows in the grid graph.
         num_columns (int): The number of columns in the grid graph.
 
+    Returns:
+        grid (nx.Graph): The original grid graph.
+        chords (List[Tuple[Tuple[int, int], Tuple[int, int]]]): The fill edges.
+        graph_triangulated (nx.Graph): The triangulated graph.
+        largest_clique (List[Tuple[int, int]]): The largest clique in the triangulated graph.
+
     Raises:
-        RuntimeError: If the graph could not be successfully triangulated.
+        RuntimeError: If the graph is not triangulated.
     """
     # Generate the grid graph and its fill edges
+    grid: nx.Graph = None
+    chords: List[Tuple[Tuple[int, int], Tuple[int, int]]] = []
     grid, chords = generate_and_solve(
         num_rows=num_rows, num_columns=num_columns)
 
-    # Plot and save the original graph
+    # Get node positions for the original graph
+    # You can use other layout functions if you prefer
+    pos = nx.spring_layout(grid)
+
+    # Plot and save the original graph using the positions
     plt.figure(figsize=(8, 6))
-    nx.draw(grid, with_labels=True, font_weight='bold')
+    nx.draw(grid, pos, with_labels=True, font_weight='bold')
     plt.savefig(f'{num_rows}x{num_columns}_grid.png')
 
     # Create the triangulated graph
-    graph_triangulated = grid.copy()
-    graph_triangulated.add_edges_from(chords)
+    grid_triangulated: nx.Graph = grid.copy()
+    grid_triangulated.add_edges_from(chords)
 
     # Check if the graph is truly chordal (triangulated)
-    if not nx.is_chordal(graph_triangulated):
+    if not nx.is_chordal(grid_triangulated):
         raise RuntimeError("The graph is not triangulated!")
 
-    # Plot and save the triangulated graph
+    # Find all cliques
+    cliques: List[List[Tuple[int, int]]] = []
+    cliques = list(nx.find_cliques(grid_triangulated))
+
+    # Find the largest clique
+    largest_clique = max(cliques, key=len)
+
+    # Create a set of colors, using a different one for the largest clique
+    node_colors = [
+        'blue' if node in largest_clique else 'red' for node in grid_triangulated.nodes()]
+
+    # Plot and save the triangulated graph using the same positions
     plt.figure(figsize=(8, 6))
-    nx.draw(graph_triangulated, with_labels=True, font_weight='bold')
+    nx.draw(grid_triangulated, pos, with_labels=True,
+            font_weight='bold', node_color=node_colors)
     plt.savefig(f'{num_rows}x{num_columns}_triangulated.png')
 
+    return grid, chords, grid_triangulated, largest_clique
 
-generate_triangulated_grid_graph(num_rows=5, num_columns=6)
+
+def run_experiments() -> None:
+    """
+    Runs the experiments for the report.
+    """
+    # Initialize the CSV file and write header
+    with open('grid_data.csv', mode='w', newline='', encoding="utf-8") as csvfile:
+        csv_writer = csv.writer(csvfile)
+        csv_writer.writerow(['number of column', 'rows',
+                            'number of added chords', 'treewidth'])
+
+    for column in range(ROWS, MAX_COLUMNS + 1):
+        _, chords, _, largest_clique = generate_triangulated_grid_graph(
+            num_rows=ROWS, num_columns=column)
+
+        # Calculate the treewidth and number of added chords
+        treewidth = len(largest_clique) - 1
+        num_added_chords = len(chords)
+
+        # Append the data to the CSV file
+        with open('grid_data.csv', mode='a', newline='', encoding="utf-8") as csvfile:
+            csv_writer = csv.writer(csvfile)
+            csv_writer.writerow([column, ROWS, num_added_chords, treewidth])
+
+
+run_experiments()
