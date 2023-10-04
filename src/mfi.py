@@ -20,7 +20,7 @@ import networkx as nx  # type: ignore
 
 SOLVER_PATH = "C:\\Users\\manig\\Downloads\\PACE2017-min-fill"
 ROWS = 5
-MAX_COLUMNS = 7
+MAX_COLUMNS = 12
 
 
 def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
