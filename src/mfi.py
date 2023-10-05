@@ -180,7 +180,7 @@ def run_experiments() -> None:
     Runs the experiments for the report.
     """
     # Initialize the CSV file and write header
-    with open('grid_data.csv', mode='w', newline='', encoding="utf-8") as csvfile:
+    with open('grid_data.csv', mode='a', newline='', encoding="utf-8") as csvfile:
         csv_writer = csv.writer(csvfile)
         csv_writer.writerow(['number of column', 'rows',
                             'number of added chords', 'treewidth'])
