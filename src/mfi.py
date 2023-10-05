@@ -49,7 +49,8 @@ def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
 
 def run_solver() -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
     """
-    Executes a batch file to run a minimum fill-in solver on Windows or a shell script on Unix-like systems.
+    Executes a batch file to run a minimum fill-in solver on Windows
+    or a shell script on Unix-like systems.
     Reads the solver's output and returns the fill edges.
 
     Returns:
