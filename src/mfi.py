@@ -16,11 +16,7 @@ import subprocess
 import os
 import matplotlib.pyplot as plt  # type: ignore
 import networkx as nx  # type: ignore
-
-
-SOLVER_PATH = "C:\\Users\\manig\\Downloads\\PACE2017-min-fill"
-ROWS = 11
-MAX_COLUMNS = 12
+from src.config import SOLVER_PATH, ROWS, MAX_COLUMNS
 
 
 def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
