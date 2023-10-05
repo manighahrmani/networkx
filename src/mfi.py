@@ -16,7 +16,7 @@ import subprocess
 import os
 import matplotlib.pyplot as plt  # type: ignore
 import networkx as nx  # type: ignore
-from src.config import SOLVER_PATH, ROWS, MAX_COLUMNS
+from config import SOLVER_PATH, ROWS, MAX_COLUMNS
 
 
 def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
@@ -183,8 +183,6 @@ def run_experiments() -> None:
     # Initialize the CSV file and write header
     with open('grid_data.csv', mode='a', newline='', encoding="utf-8") as csvfile:
         csv_writer = csv.writer(csvfile)
-        csv_writer.writerow(['number of column', 'rows',
-                            'number of added chords', 'treewidth'])
 
     for column in range(ROWS, MAX_COLUMNS + 1):
         _, chords, _, largest_clique = generate_triangulated_grid_graph(
