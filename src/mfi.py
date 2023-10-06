@@ -185,7 +185,7 @@ def run_experiments() -> None:
         csv_writer = csv.writer(csvfile)
 
     for column in range(ROWS, MAX_COLUMNS + 1):
-        print(f"Running experiment for {ROWS}x{column} grid...")
+        print(f"Running experiment for {ROWS}x{column} grid..."
         _, chords, _, largest_clique = generate_triangulated_grid_graph(
             num_rows=ROWS, num_columns=column)
 
