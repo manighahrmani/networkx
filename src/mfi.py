@@ -37,7 +37,7 @@ def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
 
     output_path = os.path.join(SOLVER_PATH, "graph.txt")
 
-    # Open the file to write the edges
+    # Represent the vertices in 4 digits (first 2 digits for row, last 2 for column)
     with open(output_path, mode='w', encoding="utf-8") as file:
         for edge in graph.edges():
             vertex_u = f"{edge[0][0]:02}{edge[0][1]:02}"
