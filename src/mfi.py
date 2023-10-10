@@ -180,18 +180,45 @@ def generate_triangulated_grid_graph(
     return grid, chords, grid_triangulated, largest_clique
 
 
+def save_grid_and_chords_to_file(num_rows, num_columns, grid, chords, largest_clique):
+    # Create a logs directory if it doesn't exist
+    logs_dir = "./logs"
+    os.makedirs(logs_dir, exist_ok=True)
+
+    output_path = os.path.join(logs_dir, f"{num_rows}x{num_columns}.txt")
+
+    with open(output_path, mode='w', encoding="utf-8") as file:
+        # Write the edges of the grid
+        for edge in grid.edges():
+            vertex_u = f"{edge[0][0]:02}{edge[0][1]:02}"
+            vertex_v = f"{edge[1][0]:02}{edge[1][1]:02}"
+            file.write(f"{vertex_u} {vertex_v}\n")
+
+        # Write the chords
+        file.write("\n" + "="*20 + "\n")
+        for chord in chords:
+            file.write(f"{chord[0]} {chord[1]}\n")
+
+        # Write the largest clique
+        file.write("\n" + "="*20 + "\n")
+        file.write(" ".join(map(str, largest_clique)))
+
+
 def run_experiments() -> None:
-    """
-    Runs the experiments for the report.
-    """
     # Initialize the CSV file and write header
     with open('grid_data.csv', mode='a', newline='', encoding="utf-8") as csvfile:
         csv_writer = csv.writer(csvfile)
 
     for column in range(ROWS, MAX_COLUMNS + 1):
         print(f"Running experiment for {ROWS}x{column} grid...")
-        _, chords, _, largest_clique = generate_triangulated_grid_graph(
+
+        # Replace the following line with your actual function to generate the triangulated grid
+        grid, chords, _, largest_clique = generate_triangulated_grid_graph(
             num_rows=ROWS, num_columns=column)
+
+        # Save the grid graph and additional information
+        save_grid_and_chords_to_file(
+            ROWS, column, grid, chords, largest_clique)
 
         # Calculate the treewidth and number of added chords
         treewidth = len(largest_clique) - 1
