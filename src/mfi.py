@@ -40,8 +40,8 @@ def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
     # Open the file to write the edges
     with open(output_path, mode='w', encoding="utf-8") as file:
         for edge in graph.edges():
-            vertex_u, vertex_v = (edge[0][0] + 1) * 10 + edge[0][1] + \
-                1, (edge[1][0] + 1) * 10 + edge[1][1] + 1
+            vertex_u = f"{edge[0][0]:02}{edge[0][1]:02}"
+            vertex_v = f"{edge[1][0]:02}{edge[1][1]:02}"
             file.write(f"{vertex_u} {vertex_v}\n")
 
     return graph
@@ -63,10 +63,13 @@ def run_solver() -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
     # Determine the script filename based on the operating system
     script_filename = "run_solver.bat" if os_type == "nt" else "run_solver.sh"
 
+    print(f"Running {script_filename}...")
+
     # Execute the appropriate script
     subprocess.run(os.path.join(SOLVER_PATH, script_filename),
                    shell=True, cwd=SOLVER_PATH, check=True)
 
+    print("Done!")
     # Read the output and count lines
     fill_edges = []
     with open(os.path.join(SOLVER_PATH, "output.txt"), mode="r", encoding="utf-8") as file:
@@ -102,6 +105,7 @@ def generate_and_solve(
 
     # Run the solver and get fill edges
     fill_edges: List[Tuple[Tuple[int, int], Tuple[int, int]]] = []
+    print("Running solver...")
     fill_edges = run_solver()
 
     return graph, fill_edges
