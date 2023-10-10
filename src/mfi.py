@@ -48,37 +48,22 @@ def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
 
 
 def run_solver() -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
-    """
-    Executes a batch file to run a minimum fill-in solver on Windows
-    or a shell script on Unix-like systems.
-    Reads the solver's output and returns the fill edges.
-
-    Returns:
-        List[Tuple[Tuple[int, int], Tuple[int, int]]]: List of fill edges.
-    """
-
-    # Determine the operating system
     os_type = os.name
-
-    # Determine the script filename based on the operating system
     script_filename = "run_solver.bat" if os_type == "nt" else "run_solver.sh"
 
     print(f"Running {script_filename}...")
-
-    # Execute the appropriate script
     subprocess.run(os.path.join(SOLVER_PATH, script_filename),
                    shell=True, cwd=SOLVER_PATH, check=True)
 
     print("Done!")
-    # Read the output and count lines
     fill_edges = []
     with open(os.path.join(SOLVER_PATH, "output.txt"), mode="r", encoding="utf-8") as file:
         lines = file.readlines()
 
         for line in lines:
             vertex_1, vertex_2 = map(int, line.split())
-            row_1, col_1 = divmod(vertex_1 - 11, 10)
-            row_2, col_2 = divmod(vertex_2 - 11, 10)
+            row_1, col_1 = divmod(vertex_1, 100)
+            row_2, col_2 = divmod(vertex_2, 100)
             fill_edges.append(((row_1, col_1), (row_2, col_2)))
 
     return fill_edges
@@ -107,6 +92,8 @@ def generate_and_solve(
     fill_edges: List[Tuple[Tuple[int, int], Tuple[int, int]]] = []
     print("Running solver...")
     fill_edges = run_solver()
+    print("Edges:", graph.edges())
+    print("Fill edges:", fill_edges)
 
     return graph, fill_edges
 
