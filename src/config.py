@@ -10,5 +10,5 @@ elif os_type == "Darwin":  # Darwin is the operating system for MacOS
 else:
     raise EnvironmentError("Unsupported operating system")
 
-ROWS = 3
-MAX_COLUMNS = 7
+ROWS = 5
+MAX_COLUMNS = 13
