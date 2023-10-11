@@ -54,11 +54,6 @@ def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
         for edge in relabeled_graph.edges():
             f.write(f"{edge[0]} {edge[1]}\n")
 
-    # Generate the positions for the nodes.
-    # In this case, we can simply reverse the labels back to tuples for positioning.
-    # Reversed to match typical Cartesian coordinates
-    pos = {mapping[key]: (key[1], -key[0]) for key in mapping.keys()}
-
     return relabeled_graph
 
 
