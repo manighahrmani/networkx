@@ -111,6 +111,9 @@ def generate_triangulated_grid_graph(num_rows: int, num_columns: int):
 
     The function saves images of both the original and triangulated graphs.
     The vertices in the largest clique of the triangulated graph are colored differently.
+
+    Raises:
+    - RuntimeError: If the graph is not triangulated.
     """
 
     os.makedirs(os.path.join('images', 'original'), exist_ok=True)
@@ -157,6 +160,37 @@ def generate_triangulated_grid_graph(num_rows: int, num_columns: int):
                 f'{num_rows}x{num_columns}_triangulated.png'))
 
     return grid, chords, grid_triangulated, largest_clique
+
+
+def check_fill_in(num_rows: int, num_columns: int, fill_in: int) -> bool:
+    """
+    Check if the fill-in matches the expected formula based on the number of rows and columns.
+
+    Parameters:
+    - num_rows (int): The number of rows in the grid.
+    - num_columns (int): The number of columns in the grid.
+    - fill_in (int): The number of fill-in edges added to triangulate the graph.
+
+    Returns:
+    - bool: True if the fill-in matches the expected formula, False otherwise.
+
+    The function checks the fill-in against the formula for the minimum fill-in (mfi) of a grid graph.
+    The formula varies depending on the number of rows:
+        * For a 3-row grid, the mfi is 5 + 4 * (n - 3) for n >= 3.
+        * For a 4-row grid, the mfi is:
+            * 18 + 8 * (n - 4) if n is even
+            * 25 + 8 * (n - 5) if n is odd
+    """
+    if num_rows > 4 or num_rows < 3:
+        return True
+    elif num_rows == 3:
+        # Check that the fill-in is 5 + 4 * (n - 3) for n >= 3
+        return fill_in == 5 + 4 * (num_columns - 3)
+    else:
+        if num_columns % 2 == 0:
+            return fill_in == 18 + 8 * (num_columns - 4)
+        else:
+            return fill_in == 25 + 8 * (num_columns - 5)
 
 
 def run_experiments() -> None:
