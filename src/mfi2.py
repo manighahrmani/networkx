@@ -26,7 +26,7 @@ def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
     followed by two digits for the row number and two digits for the column number.
     For example, the vertex in the first row and first column is labeled '10101'.
 
-    The edges of the graph are saved in a text file, and an image of the grid is also saved.
+    The edges of the graph are saved in a text file.
     """
 
     # Generate the original grid graph
@@ -58,11 +58,6 @@ def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
     # In this case, we can simply reverse the labels back to tuples for positioning.
     # Reversed to match typical Cartesian coordinates
     pos = {mapping[key]: (key[1], -key[0]) for key in mapping.keys()}
-
-    # Plot and save the original graph using the positions
-    plt.figure(figsize=(8, 6))
-    nx.draw(relabeled_graph, pos, with_labels=True, font_weight='bold')
-    plt.savefig(f'{num_rows}x{num_columns}_grid.png')
 
     return relabeled_graph
 
@@ -99,5 +94,69 @@ def run_solver():
     return fill_edges
 
 
-edges = run_solver()
-print(edges)
+def generate_triangulated_grid_graph(num_rows: int, num_columns: int):
+    """
+    Generate a grid graph, triangulate it, and visualize the original and triangulated graphs.
+
+    Parameters:
+    - num_rows (int): The number of rows in the grid.
+    - num_columns (int): The number of columns in the grid.
+
+    Returns:
+    - Tuple[nx.Graph, List[Tuple[str, str]], nx.Graph, List[str]]:
+        * The original grid graph.
+        * The fill edges added to triangulate the graph.
+        * The triangulated graph.
+        * The largest clique in the triangulated graph.
+
+    The function saves images of both the original and triangulated graphs.
+    The vertices in the largest clique of the triangulated graph are colored differently.
+    """
+
+    os.makedirs(os.path.join('images', 'original'), exist_ok=True)
+    os.makedirs(os.path.join('images', 'triangulated'), exist_ok=True)
+
+    # Generate the grid graph (`generate_grid_graph`) and find the fill edges (`run_solver`)
+    grid = generate_grid_graph(num_rows, num_columns)
+    chords = run_solver()
+
+    # Get node positions for the original graph
+    # This is so that the vertices of grid graph and triangulated graph have the same positions
+    pos = {node: (int(node[3:5]) - 1, -(int(node[1:3]) - 1))
+           for node in grid.nodes()}
+
+    # Plot and save the original graph using the positions
+    plt.figure(figsize=(8, 6))
+    nx.draw(grid, pos, with_labels=True, font_weight='bold')
+    plt.savefig(os.path.join('images', 'original',
+                f'{num_rows}x{num_columns}_grid.png'))
+
+    # Create the triangulated graph
+    grid_triangulated: nx.Graph = grid.copy()
+    grid_triangulated.add_edges_from(chords)  # This should work
+
+    # Check if the graph is truly chordal (triangulated)
+    if not nx.is_chordal(grid_triangulated):
+        raise RuntimeError("The graph is not triangulated!")
+
+    # Find all cliques
+    cliques: List[List[str]] = list(nx.find_cliques(grid_triangulated))
+
+    # Find the largest clique
+    largest_clique = max(cliques, key=len)
+
+    # Create a set of colors, using a different one for the largest clique
+    node_colors = [
+        'blue' if node in largest_clique else 'red' for node in grid_triangulated.nodes()]
+
+    # Plot and save the triangulated graph using the same positions
+    plt.figure(figsize=(8, 6))
+    nx.draw(grid_triangulated, pos, with_labels=True,
+            font_weight='bold', node_color=node_colors)
+    plt.savefig(os.path.join('images', 'triangulated',
+                f'{num_rows}x{num_columns}_triangulated.png'))
+
+    return grid, chords, grid_triangulated, largest_clique
+
+
+generate_triangulated_grid_graph(3, 5)
