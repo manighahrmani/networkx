@@ -159,4 +159,54 @@ def generate_triangulated_grid_graph(num_rows: int, num_columns: int):
     return grid, chords, grid_triangulated, largest_clique
 
 
-generate_triangulated_grid_graph(3, 5)
+def run_experiments() -> None:
+    """
+    Run experiments to generate triangulated grid graphs and collect data.
+
+    Parameters:
+    - ROWS (int): The constant number of rows for the grid.
+    - MAX_COLUMNS (int): The maximum number of columns to iterate through.
+
+    Returns:
+    - None
+
+    This function iterates through a range of columns from `ROWS` to `MAX_COLUMNS`,
+    generating triangulated grid graphs for each. It calculates the treewidth and
+    number of added chords for each grid, saving these data points to a CSV file.
+    Additionally, it writes the added chords and largest clique to a text file for each grid.
+    """
+
+    # Initialize the CSV file and write header
+    with open('grid_data.csv', mode='w', newline='', encoding="utf-8") as csvfile:
+        csv_writer = csv.writer(csvfile)
+        csv_writer.writerow(
+            ['Columns', 'Rows', 'Num_Added_Chords', 'Treewidth'])
+
+    for column in range(ROWS, MAX_COLUMNS + 1):
+        print(f"Running experiment for {ROWS}x{column} grid...")
+
+        # Generate the triangulated grid
+        _, chords, _, largest_clique = generate_triangulated_grid_graph(
+            num_rows=ROWS, num_columns=column)
+
+        # Write the added chords and largest clique to a text file
+        with open(os.path.join("logs", f"{ROWS}x{column}.txt"), mode='w', encoding="utf-8") as file:
+            file.write("Added Chords:\n")
+            for chord in chords:
+                file.write(f"{chord[0]} {chord[1]}\n")
+            file.write("=" * 20 + "\n")
+            file.write("Largest Clique:\n")
+            for node in largest_clique:
+                file.write(f"{node}\n")
+
+        # Calculate the treewidth and number of added chords
+        treewidth = len(largest_clique) - 1
+        num_added_chords = len(chords)
+
+        # Append the data to the CSV file
+        with open('grid_data.csv', mode='a', newline='', encoding="utf-8") as csvfile:
+            csv_writer = csv.writer(csvfile)
+            csv_writer.writerow([column, ROWS, num_added_chords, treewidth])
+
+
+run_experiments()
