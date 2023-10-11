@@ -136,6 +136,10 @@ def generate_triangulated_grid_graph(num_rows: int, num_columns: int):
     # Check if the graph is truly chordal (triangulated)
     if not nx.is_chordal(grid_triangulated):
         raise RuntimeError("The graph is not triangulated!")
+    
+    # Check if the fill-in matches the expected formula
+    if not check_fill_in(num_rows, num_columns, len(chords)):
+        raise RuntimeError("The fill-in does not match the expected formula!")
 
     # Find all cliques
     cliques: List[List[str]] = list(nx.find_cliques(grid_triangulated))
