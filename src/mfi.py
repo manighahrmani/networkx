@@ -136,7 +136,7 @@ def generate_triangulated_grid_graph(num_rows: int, num_columns: int):
     # Check if the graph is truly chordal (triangulated)
     if not nx.is_chordal(grid_triangulated):
         raise RuntimeError("The graph is not triangulated!")
-    
+
     # Check if the fill-in matches the expected formula
     if not check_fill_in(num_rows, num_columns, len(chords)):
         raise RuntimeError("The fill-in does not match the expected formula!")
@@ -210,7 +210,7 @@ def run_experiments() -> None:
     """
 
     # Initialize the CSV file and write header
-    with open('grid_data.csv', mode='w', newline='', encoding="utf-8") as csvfile:
+    with open(f'{ROWS}_grid_data.csv', mode='w', newline='', encoding="utf-8") as csvfile:
         csv_writer = csv.writer(csvfile)
         csv_writer.writerow(
             ['Columns', 'Rows', 'Num_Added_Chords', 'Treewidth'])
