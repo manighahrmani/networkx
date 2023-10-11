@@ -160,8 +160,13 @@ def generate_triangulated_grid_graph(
     node_color_dict = {}
 
     # Create a list of unique colors (one for each maximal clique)
-    unique_colors = ['green', 'blue', 'purple', 'brown',
-                     'orange', 'pink', 'yellow', 'black']
+    unique_colors = [
+        'green', 'blue', 'purple', 'brown',
+        'orange', 'pink', 'yellow', 'black',
+        'cyan', 'magenta', 'lime', 'gray',
+        'olive', 'maroon', 'navy', 'teal',
+        'silver', 'white'
+    ]
 
     if len(maximum_cliques) > len(unique_colors):
         raise RuntimeError("Not enough unique colors for maximal cliques.")
