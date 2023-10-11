@@ -209,4 +209,6 @@ def run_experiments() -> None:
 
 
 # TODO: #1 Check the 3 and 4 grids against the formula for the mfi.
+# mfi(P_3 \square P_n) = 5 + 4 * (n - 3) for n >= 3
+# mfi(P_4 \square P_n) = 18 + 8 * (n - 4) if n is even and 25 + 8 * (n - 5) if n is odd
 run_experiments()
