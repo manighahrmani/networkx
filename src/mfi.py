@@ -207,5 +207,5 @@ def run_experiments() -> None:
             csv_writer = csv.writer(csvfile)
             csv_writer.writerow([column, ROWS, num_added_chords, treewidth])
 
-
+# TODO: #1 Check the 3 and 4 grids against the formula for the mfi.
 run_experiments()
