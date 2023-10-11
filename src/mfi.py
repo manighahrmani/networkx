@@ -5,6 +5,7 @@ Minimum Fill-In Module
 import csv
 import subprocess
 import os
+from typing import List
 import matplotlib.pyplot as plt  # type: ignore
 import networkx as nx  # type: ignore
 from config import SOLVER_PATH, ROWS, MAX_COLUMNS
