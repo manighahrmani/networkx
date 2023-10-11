@@ -5,7 +5,7 @@ Minimum Fill-In Module
 import csv
 import subprocess
 import os
-from typing import List
+from typing import List, Tuple
 import matplotlib.pyplot as plt  # type: ignore
 import networkx as nx  # type: ignore
 from config import SOLVER_PATH, ROWS, MAX_COLUMNS
@@ -57,7 +57,7 @@ def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
     return relabeled_graph
 
 
-def run_solver():
+def run_solver() -> List[Tuple[str, str]]:
     """
     Run an external solver to generate fill edges that triangulate the graph.
 
@@ -89,7 +89,10 @@ def run_solver():
     return fill_edges
 
 
-def generate_triangulated_grid_graph(num_rows: int, num_columns: int):
+def generate_triangulated_grid_graph(
+        num_rows: int,
+        num_columns: int
+) -> Tuple[nx.Graph, List[Tuple[str, str]], nx.Graph, List[List[str]]]:
     """
     Generate a grid graph, triangulate it, and visualize the original and triangulated graphs.
 
@@ -98,17 +101,19 @@ def generate_triangulated_grid_graph(num_rows: int, num_columns: int):
     - num_columns (int): The number of columns in the grid.
 
     Returns:
-    - Tuple[nx.Graph, List[Tuple[str, str]], nx.Graph, List[str]]:
+    - Tuple[nx.Graph, List[Tuple[str, str]], nx.Graph, List[List[str]]]:
         * The original grid graph.
         * The fill edges added to triangulate the graph.
         * The triangulated graph.
-        * The largest clique in the triangulated graph.
+        * The list of all maximal cliques in the triangulated graph.
 
     The function saves images of both the original and triangulated graphs.
-    The vertices in the largest clique of the triangulated graph are colored differently.
+    The vertices in the maximal cliques are colored differently from the rest of the graph.
 
     Raises:
     - RuntimeError: If the graph is not triangulated.
+    - RuntimeError: If the fill-in does not match the expected formula.
+    - RuntimeError: If there are not enough unique colors for maximal cliques.
     """
 
     os.makedirs(os.path.join('images', 'original'), exist_ok=True)
@@ -144,12 +149,31 @@ def generate_triangulated_grid_graph(num_rows: int, num_columns: int):
     # Find all cliques
     cliques: List[List[str]] = list(nx.find_cliques(grid_triangulated))
 
-    # Find the largest clique
-    largest_clique = max(cliques, key=len)
+    # Find the maximum clique size
+    max_clique_size = max([len(clique) for clique in cliques])
 
-    # Create a set of colors, using a different one for the largest clique
-    node_colors = [
-        'blue' if node in largest_clique else 'red' for node in grid_triangulated.nodes()]
+    # Find all cliques of the maximum size
+    maximum_cliques: List[List[str]] = [
+        clique for clique in cliques if len(clique) == max_clique_size]
+
+    # Create a dictionary to store color for each node
+    node_color_dict = {}
+
+    # Create a list of unique colors (one for each maximal clique)
+    unique_colors = ['green', 'blue', 'purple', 'brown',
+                     'orange', 'pink', 'yellow', 'black']
+
+    if len(maximum_cliques) > len(unique_colors):
+        raise RuntimeError("Not enough unique colors for maximal cliques.")
+
+    # Assign a unique color to each maximal clique
+    for i, max_clique in enumerate(maximum_cliques):
+        for node in max_clique:
+            node_color_dict[node] = unique_colors[i]
+
+    # Generate list of node colors based on the populated node_color_dict
+    node_colors = [node_color_dict.get(node, 'gray')
+                   for node in grid_triangulated.nodes()]
 
     # Plot and save the triangulated graph using the same positions
     plt.figure(figsize=(8, 6))
@@ -158,7 +182,7 @@ def generate_triangulated_grid_graph(num_rows: int, num_columns: int):
     plt.savefig(os.path.join('images', 'triangulated',
                 f'{num_rows}x{num_columns}_triangulated.png'))
 
-    return grid, chords, grid_triangulated, largest_clique
+    return grid, chords, grid_triangulated, maximum_cliques
 
 
 def check_fill_in(num_rows: int, num_columns: int, fill_in: int) -> bool:
@@ -219,7 +243,7 @@ def run_experiments() -> None:
         print(f"Running experiment for {ROWS}x{column} grid...")
 
         # Generate the triangulated grid
-        _, chords, _, largest_clique = generate_triangulated_grid_graph(
+        _, chords, _, maximum_cliques = generate_triangulated_grid_graph(
             num_rows=ROWS, num_columns=column)
 
         # Write the added chords and largest clique to a text file
@@ -228,11 +252,15 @@ def run_experiments() -> None:
             for chord in chords:
                 file.write(f"{chord[0]} {chord[1]}\n")
             file.write("=" * 20 + "\n")
-            for node in largest_clique:
-                file.write(f"{node}\n")
+            # Since maximum_cliques is a list of lists, we need to iterate through it
+            # For each one, we write the nodes in the clique as a line in the file
+            for clique in maximum_cliques:
+                for node in clique:
+                    file.write(f"{node} ")
+                file.write("\n")
 
         # Calculate the treewidth and number of added chords
-        treewidth = len(largest_clique) - 1
+        treewidth = len(maximum_cliques[0]) - 1
         num_added_chords = len(chords)
 
         # Append the data to the CSV file
