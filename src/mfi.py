@@ -203,9 +203,10 @@ def run_experiments() -> None:
         num_added_chords = len(chords)
 
         # Append the data to the CSV file
-        with open('grid_data.csv', mode='a', newline='', encoding="utf-8") as csvfile:
+        with open(f'{ROWS}_grid_data.csv', mode='a', newline='', encoding="utf-8") as csvfile:
             csv_writer = csv.writer(csvfile)
             csv_writer.writerow([column, ROWS, num_added_chords, treewidth])
+
 
 # TODO: #1 Check the 3 and 4 grids against the formula for the mfi.
 run_experiments()
