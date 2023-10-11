@@ -111,6 +111,9 @@ def generate_triangulated_grid_graph(num_rows: int, num_columns: int):
 
     The function saves images of both the original and triangulated graphs.
     The vertices in the largest clique of the triangulated graph are colored differently.
+
+    Raises:
+    - RuntimeError: If the graph is not triangulated.
     """
 
     os.makedirs(os.path.join('images', 'original'), exist_ok=True)
