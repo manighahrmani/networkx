@@ -67,4 +67,37 @@ def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
     return relabeled_graph
 
 
-generate_grid_graph(3, 4)
+def run_solver():
+    """
+    Run an external solver to generate fill edges that triangulate the graph.
+
+    Returns:
+    - List[Tuple[str, str]]: The list of fill edges added to triangulate the graph.
+
+    This function runs an external solver script that reads the graph from a text file,
+    triangulates the graph, and then writes the fill edges to an output text file.
+    The function reads this output file and returns the fill edges as a list of tuples.
+    """
+
+    os_type = os.name
+    script_filename = "run_solver.bat" if os_type == "nt" else "run_solver.sh"
+
+    subprocess.run(os.path.join(SOLVER_PATH, script_filename),
+                   shell=True, cwd=SOLVER_PATH, check=True)
+
+    fill_edges = []
+    with open(os.path.join(SOLVER_PATH, "output.txt"), mode="r", encoding="utf-8") as file:
+        lines = file.readlines()
+        for line in lines:
+            # Remove any leading/trailing white spaces and split the vertices
+            vertices = line.strip().split(" ")
+
+            # Add the edge as a tuple to the fill_edges list
+            if len(vertices) == 2:
+                fill_edges.append((vertices[0], vertices[1]))
+
+    return fill_edges
+
+
+edges = run_solver()
+print(edges)
