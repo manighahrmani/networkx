@@ -191,11 +191,10 @@ def run_experiments() -> None:
 
         # Write the added chords and largest clique to a text file
         with open(os.path.join("logs", f"{ROWS}x{column}.txt"), mode='a', encoding="utf-8") as file:
-            file.write("Added Chords:\n")
+            file.write("=" * 20 + "\n")
             for chord in chords:
                 file.write(f"{chord[0]} {chord[1]}\n")
             file.write("=" * 20 + "\n")
-            file.write("Largest Clique:\n")
             for node in largest_clique:
                 file.write(f"{node}\n")
 
