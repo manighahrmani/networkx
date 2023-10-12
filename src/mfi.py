@@ -132,6 +132,7 @@ def generate_triangulated_grid_graph(
     nx.draw(grid, pos, with_labels=True, font_weight='bold')
     plt.savefig(os.path.join('images', 'original',
                 f'{num_rows}x{num_columns}_grid.png'))
+    plt.close()
 
     # Create the triangulated graph
     grid_triangulated: nx.Graph = grid.copy()
@@ -186,6 +187,7 @@ def generate_triangulated_grid_graph(
             font_weight='bold', node_color=node_colors)
     plt.savefig(os.path.join('images', 'triangulated',
                 f'{num_rows}x{num_columns}_triangulated.png'))
+    plt.close()
 
     return grid, chords, grid_triangulated, maximum_cliques
 
