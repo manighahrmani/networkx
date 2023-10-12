@@ -113,7 +113,6 @@ def generate_triangulated_grid_graph(
     Raises:
     - RuntimeError: If the graph is not triangulated.
     - RuntimeError: If the fill-in does not match the expected formula.
-    - RuntimeError: If there are not enough unique colors for maximal cliques.
     """
 
     os.makedirs(os.path.join('images', 'original'), exist_ok=True)
@@ -169,7 +168,8 @@ def generate_triangulated_grid_graph(
     ]
 
     if len(maximum_cliques) > len(unique_colors):
-        raise RuntimeError("Not enough unique colors for maximal cliques.")
+        # Reuse colors if there are not enough unique colors
+        unique_colors = unique_colors * 10  # Duplicate the list 10 times
 
     # Assign a unique color to each maximal clique
     for i, max_clique in enumerate(maximum_cliques):
