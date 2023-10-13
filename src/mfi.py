@@ -98,6 +98,8 @@ def run_solver(
         cmd += f' -k={num_added_chords}'
     cmd += ' -pmcprogress'
 
+    print(f"For {num_rows}x{num_columns} grid, running command: {cmd}")
+
     # Run the solver
     subprocess.run(cmd, shell=True, cwd=SOLVER_PATH, check=True)
 
