@@ -96,12 +96,18 @@ def run_solver(
     # Add the parameters to the command
     if num_added_chords is not None:
         cmd += f' -k={num_added_chords}'
-    cmd += ' -pmcprogress'
+    cmd += ' -pmcprogress -info'
 
     print(f"For {num_rows}x{num_columns} grid, running command: {cmd}")
 
     # Run the solver
-    subprocess.run(cmd, shell=True, cwd=SOLVER_PATH, check=True)
+    # subprocess.run(cmd, shell=True, cwd=SOLVER_PATH, check=True)
+    result = subprocess.run(cmd, shell=True, cwd=SOLVER_PATH, check=True,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+    # Display the stdout and stderr
+    print("STDOUT:", result.stdout)
+    print("STDERR:", result.stderr)
 
     # Read the output file to get the fill edges
     fill_edges = []
