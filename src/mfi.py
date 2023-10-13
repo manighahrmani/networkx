@@ -57,9 +57,16 @@ def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
     return relabeled_graph
 
 
-def run_solver() -> List[Tuple[str, str]]:
+def run_solver(
+        num_rows: int,
+        num_columns: int
+) -> List[Tuple[str, str]]:
     """
     Run an external solver to generate fill edges that triangulate the graph.
+
+    Parameters:
+    - num_rows (int): The number of rows in the grid.
+    - num_columns (int): The number of columns in the grid.
 
     Returns:
     - List[Tuple[str, str]]: The list of fill edges added to triangulate the graph.
@@ -69,12 +76,32 @@ def run_solver() -> List[Tuple[str, str]]:
     The function reads this output file and returns the fill edges as a list of tuples.
     """
 
+    # Read the number of added edges from the CSV file if it exists
+    csv_filename = f'{num_rows}_grid_data.csv'
+    num_added_chords = None
+    if os.path.exists(csv_filename):
+        with open(csv_filename, mode='r', newline='', encoding="utf-8") as csvfile:
+            csv_reader = csv.reader(csvfile)
+            _ = next(csv_reader)
+            for row in csv_reader:
+                if int(row[0]) == num_columns:
+                    num_added_chords = int(row[2])
+                    break
+
+    # Prepare the command to run the solver
     os_type = os.name
     script_filename = "run_solver.bat" if os_type == "nt" else "run_solver.sh"
+    cmd = os.path.join(SOLVER_PATH, script_filename)
 
-    subprocess.run(os.path.join(SOLVER_PATH, script_filename),
-                   shell=True, cwd=SOLVER_PATH, check=True)
+    # Add the parameters to the command
+    if num_added_chords is not None:
+        cmd += f' -k={num_added_chords}'
+    cmd += ' -pmcprogress'
 
+    # Run the solver
+    subprocess.run(cmd, shell=True, cwd=SOLVER_PATH, check=True)
+
+    # Read the output file to get the fill edges
     fill_edges = []
     with open(os.path.join(SOLVER_PATH, "output.txt"), mode="r", encoding="utf-8") as file:
         lines = file.readlines()
@@ -120,7 +147,7 @@ def generate_triangulated_grid_graph(
 
     # Generate the grid graph (`generate_grid_graph`) and find the fill edges (`run_solver`)
     grid = generate_grid_graph(num_rows, num_columns)
-    chords = run_solver()
+    chords = run_solver(num_rows, num_columns)
 
     # Get node positions for the original graph
     # This is so that the vertices of grid graph and triangulated graph have the same positions
@@ -240,11 +267,16 @@ def run_experiments() -> None:
     Additionally, it writes the added chords and largest clique to a text file for each grid.
     """
 
-    # Initialize the CSV file and write header
-    with open(f'{ROWS}_grid_data.csv', mode='w', newline='', encoding="utf-8") as csvfile:
-        csv_writer = csv.writer(csvfile)
-        csv_writer.writerow(
-            ['Columns', 'Rows', 'Num_Added_Chords', 'Treewidth'])
+    csv_filename = f'{ROWS}_grid_data.csv'
+    existing_data = {}
+
+    # Read existing data from the CSV file if it exists
+    if os.path.exists(csv_filename):
+        with open(csv_filename, mode='r', newline='', encoding="utf-8") as csvfile:
+            csv_reader = csv.reader(csvfile)
+            header = next(csv_reader)
+            for row in csv_reader:
+                existing_data[int(row[0])] = (int(row[2]), int(row[3]))
 
     for column in range(ROWS, MAX_COLUMNS + 1):
         print(f"Running experiment for {ROWS}x{column} grid...")
@@ -253,30 +285,21 @@ def run_experiments() -> None:
         _, chords, _, maximum_cliques = generate_triangulated_grid_graph(
             num_rows=ROWS, num_columns=column)
 
-        # Write the added chords and largest clique to a text file
-        with open(os.path.join("logs", f"{ROWS}x{column}.txt"), mode='a', encoding="utf-8") as file:
-            file.write("=" * 20 + "\n")
-            for chord in chords:
-                file.write(f"{chord[0]} {chord[1]}\n")
-            file.write("=" * 20 + "\n")
-            # Since maximum_cliques is a list of lists, we need to iterate through it
-            # For each one, we write the nodes in the clique as a line in the file
-            for clique in maximum_cliques:
-                for node in clique:
-                    file.write(f"{node} ")
-                file.write("\n")
-
         # Calculate the treewidth and number of added chords
         treewidth = len(maximum_cliques[0]) - 1
         num_added_chords = len(chords)
 
-        # Append the data to the CSV file
-        with open(f'{ROWS}_grid_data.csv', mode='a', newline='', encoding="utf-8") as csvfile:
-            csv_writer = csv.writer(csvfile)
+        # Update the existing data if needed
+        if column not in existing_data or existing_data[column] != (num_added_chords, treewidth):
+            existing_data[column] = (num_added_chords, treewidth)
+
+    # Write the updated data back to the CSV file
+    with open(csv_filename, mode='w', newline='', encoding="utf-8") as csvfile:
+        csv_writer = csv.writer(csvfile)
+        csv_writer.writerow(
+            ['Columns', 'Rows', 'Num_Added_Chords', 'Treewidth'])
+        for column, (num_added_chords, treewidth) in sorted(existing_data.items()):
             csv_writer.writerow([column, ROWS, num_added_chords, treewidth])
 
 
-# TODO: #1 Check the 3 and 4 grids against the formula for the mfi.
-# mfi(P_3 \square P_n) = 5 + 4 * (n - 3) for n >= 3
-# mfi(P_4 \square P_n) = 18 + 8 * (n - 4) if n is even and 25 + 8 * (n - 5) if n is odd
 run_experiments()
