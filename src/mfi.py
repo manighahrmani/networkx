@@ -248,7 +248,7 @@ def check_fill_in(num_rows: int, num_columns: int, fill_in: int) -> bool:
     Returns:
     - bool: True if the fill-in matches the expected formula, False otherwise.
 
-    The function checks the fill-in against the formula for the minimum fill-in (mfi) of a grid graph.
+    The function checks the fill-in against the formula for mfi of a grid graph.
     The formula varies depending on the number of rows:
         * For a 3-row grid, the mfi is 5 + 4 * (n - 3) for n >= 3.
         * For a 4-row grid, the mfi is:
@@ -291,7 +291,7 @@ def run_experiments() -> None:
     if os.path.exists(csv_filename):
         with open(csv_filename, mode='r', newline='', encoding="utf-8") as csvfile:
             csv_reader = csv.reader(csvfile)
-            header = next(csv_reader)
+            _ = next(csv_reader)
             for row in csv_reader:
                 existing_data[int(row[0])] = (int(row[2]), int(row[3]))
 
