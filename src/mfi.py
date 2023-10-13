@@ -5,7 +5,7 @@ Minimum Fill-In Module
 import csv
 import subprocess
 import os
-from typing import List, Tuple
+from typing import List, Tuple, Set, Dict, Any
 import matplotlib.pyplot as plt  # type: ignore
 import networkx as nx  # type: ignore
 from config import SOLVER_PATH, ROWS, MAX_COLUMNS
@@ -139,7 +139,7 @@ def generate_triangulated_grid_graph(
     - Tuple[nx.Graph, List[Tuple[str, str]], nx.Graph, List[List[str]]]:
         * The original grid graph.
         * The fill edges added to triangulate the graph.
-        * The triangulated graph.
+        * The triangulated graph.f
         * The list of all maximal cliques in the triangulated graph.
 
     The function saves images of both the original and triangulated graphs.
@@ -273,6 +273,47 @@ def check_fill_in(num_rows: int, num_columns: int, fill_in: int) -> bool:
             return fill_in == 25 + 8 * (num_columns - 5)
 
 
+def maximum_cardinality_search(graph: nx.Graph) -> List[Any]:
+    """
+    Perform a Maximum Cardinality Search (MCS) on a given graph to find an elimination ordering.
+
+    Parameters:
+    - graph (networkx.Graph): The input graph, assumed to be chordal.
+
+    Returns:
+    - List[Any]: A list representing the elimination ordering of the vertices.
+
+    Note:
+    This function assumes that the input graph G is chordal. Using it on a non-chordal graph
+    may not produce a valid elimination ordering.
+    """
+
+    # Initialize
+    visited: Set[Any] = set()
+    label: Dict[Any, int] = {}
+    order: List[Any] = []
+
+    # Initialize all vertices with label 0
+    for node in graph.nodes():
+        label[node] = 0
+
+    # Main loop to find the elimination ordering
+    while len(visited) < len(graph):
+        # Select a node with maximum label
+        max_label_node = max((node for node in graph.nodes() if node not in visited),
+                             key=lambda node: label[node])
+
+        visited.add(max_label_node)
+        order.append(max_label_node)
+
+        # Update labels of neighbors
+        for neighbor in graph.neighbors(max_label_node):
+            if neighbor not in visited:
+                label[neighbor] += 1
+
+    return order[::-1]  # Reverse to get elimination ordering
+
+
 def run_experiments() -> None:
     """
     Run experiments to generate triangulated grid graphs and collect data.
@@ -305,8 +346,21 @@ def run_experiments() -> None:
         print(f"Running experiment for {ROWS}x{column} grid...")
 
         # Generate the triangulated grid
-        _, chords, _, maximum_cliques = generate_triangulated_grid_graph(
+        _, chords, triangulated_grid, maximum_cliques = generate_triangulated_grid_graph(
             num_rows=ROWS, num_columns=column)
+
+        # Calculate the elimination ordering
+        elimination_ordering = maximum_cardinality_search(triangulated_grid)
+
+        with open(
+            os.path.join("logs", f'{ROWS}x{column}.txt'),
+            mode='a',
+            encoding='utf8'
+        ) as f:
+            f.write("====================\n")
+            for node in elimination_ordering:
+                f.write(f"{node} ")
+            f.write("\n")
 
         # Calculate the treewidth and number of added chords
         treewidth = len(maximum_cliques[0]) - 1
