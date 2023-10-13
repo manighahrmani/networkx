@@ -11,4 +11,4 @@ else:
     raise EnvironmentError("Unsupported operating system")
 
 ROWS = 3
-MAX_COLUMNS = 10
+MAX_COLUMNS = 15
