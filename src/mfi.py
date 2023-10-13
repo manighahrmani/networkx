@@ -183,6 +183,21 @@ def generate_triangulated_grid_graph(
     maximum_cliques: List[List[str]] = [
         clique for clique in cliques if len(clique) == max_clique_size]
 
+    # Write the chords and maximum cliques to a text file
+    with open(
+        os.path.join("logs", f'{num_rows}x{num_columns}.txt'),
+        mode='a',
+        encoding='utf8'
+    ) as f:
+        f.write("====================\n")
+        for chord in chords:
+            f.write(f"{chord[0]} {chord[1]}\n")
+        f.write("====================\n")
+        for clique in maximum_cliques:
+            for node in clique:
+                f.write(f"{node} ")
+            f.write("\n")
+
     # Create a dictionary to store color for each node
     node_color_dict = {}
 
