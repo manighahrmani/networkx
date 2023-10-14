@@ -6,6 +6,8 @@ Includes implementations of the following functions:
 - is_clique(graph: nx.Graph, vertexset: Set[int]) -> bool
 - is_separator(graph: nx.Graph, vertexset: Set[int]) -> bool
 - is_minimal_separator(graph: nx.Graph, vertexset: Set[int]) -> bool
+- get_missing_edges_in_neighborhood(graph: nx.Graph, vertex: int) -> Set[Tuple[int, int]]
+- get_missing_edges(graph: nx.Graph, vertexset: Set[int]) -> Set[Tuple[int, int]]
 - is_clique_minimal_separator(graph: nx.Graph, vertexset: Set[int]) -> bool
 - is_simplicial(graph: nx.Graph, vertex: int) -> bool
 - is_almost_clique(graph: nx.Graph, vertexset: Set[int]) -> bool
@@ -76,11 +78,8 @@ def is_clique(graph: nx.Graph, vertexset: Set[int]) -> bool:
     Returns:
     - bool: True if the vertex set induces a complete subgraph, otherwise False.
     """
-    for vertex in vertexset:
-        neighbors = set(graph.neighbors(vertex))
-        if not (vertexset - {vertex}).issubset(neighbors):
-            return False
-    return True
+    missing_edges: Set[Tuple[int, int]] = get_missing_edges(graph, vertexset)
+    return len(missing_edges) == 0
 
 
 def is_separator(graph: nx.Graph, vertexset: Set[int]) -> bool:
