@@ -13,6 +13,7 @@ Includes implementations of the following functions:
 - is_almost_simplicial(graph: nx.Graph, vertex: int) -> bool
 """
 
+from typing import List, Set, Tuple
 from typing import List, Set
 import unittest
 import os
@@ -221,6 +222,66 @@ def is_almost_simplicial(graph: nx.Graph, vertex: int) -> bool:
     """
     neighbors = set(graph.neighbors(vertex))
     return is_almost_clique(graph, neighbors)
+
+
+def minimum_chordal_triangulation(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph]]:
+    As = [G]
+    processed = []
+    F = set()
+
+    while As:
+        A_i = As.pop(0)
+
+        # Step 1: Check for minimal separators in the neighborhood of each vertex
+        for v in list(A_i.nodes):
+            neighbors = set(A_i.neighbors(v))
+            for S in nx.enumerate_all_cliques(A_i.subgraph(neighbors)):
+                if is_minimal_separator(A_i, set(S)):
+                    missing_edges = [
+                        (u, v) for u in S for v in S if u < v and not A_i.has_edge(u, v)]
+                    if len(missing_edges) == 1:
+                        e = missing_edges[0]
+                        A_i.add_edge(*e)
+                        F.add(e)
+
+        # Step 2: Eliminate simplicial and almost simplicial vertices
+        for v in list(A_i.nodes):
+            neighbors = set(A_i.neighbors(v))
+
+            if is_simplicial(A_i, v):
+                A_i.remove_node(v)
+
+            elif is_almost_simplicial(A_i, v) and len(neighbors) == nx.node_connectivity(A_i):
+                missing_edges = [
+                    (u, v) for u in neighbors for v in neighbors if u < v and not A_i.has_edge(u, v)]
+                for e in missing_edges:
+                    A_i.add_edge(*e)
+                    F.add(e)
+                A_i.remove_node(v)
+
+        # Step 3: Clique minimal separator decomposition
+        L_i = clique_minimal_separator_decomposition(A_i)
+        G_i = [A_i.subgraph(L).copy() for L in L_i]
+
+        if len(G_i) == 1:
+            processed.append(G_i[0])
+        else:
+            As.extend(G_i)
+
+    return F, processed
+
+
+# Example usage
+grid_graph = generate_grid_graph(3, 3)
+F, processed = minimum_chordal_triangulation(grid_graph)
+
+# Show added edges
+print("Added edges:", F)
+
+# Show processed graphs
+for i, graph in enumerate(processed):
+    print(
+        f"Processed graph {i + 1}: Nodes = {list(graph.nodes)}, Edges = {list(graph.edges)}")
 
 
 class TestReduction(unittest.TestCase):
