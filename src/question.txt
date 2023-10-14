@@ -1,18 +1,20 @@
 I already have the following functions:
 - generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph
-- is_clique(graph: nx.Graph, vertexset: Set[int]) -> bool
-- is_separator(graph: nx.Graph, vertexset: Set[int]) -> bool
-- is_minimal_separator(graph: nx.Graph, vertexset: Set[int]) -> bool
-- is_clique_minimal_separator(graph: nx.Graph, vertexset: Set[int]) -> bool
+- is_clique(graph: nx.Graph, vertex set: Set[int]) -> bool
+- is_separator(graph: nx.Graph, vertex set: Set[int]) -> bool
+- is_minimal_separator(graph: nx.Graph, vertex set: Set[int]) -> bool
+- get_missing_edges_in_neighborhood(graph: nx.Graph, vertex: int) -> Set[Tuple[int, int]]
+- get_missing_edges(graph: nx.Graph, vertex set: Set[int]) -> Set[Tuple[int, int]]
+- is_clique_minimal_separator(graph: nx.Graph, vertex set: Set[int]) -> bool
 - is_simplicial(graph: nx.Graph, vertex: int) -> bool
-- is_almost_clique(graph: nx.Graph, vertexset: Set[int]) -> bool
+- is_almost_clique(graph: nx.Graph, vertex set: Set[int]) -> bool
 - clique_minimal_separator_decomposition(graph: nx.Graph) -> List[Set[int]]
 - is_almost_simplicial(graph: nx.Graph, vertex: int) -> bool
 
-And networkx module in Pyton provides the following:
+And NetworkX module in Python provides the following:
 - graph.degree(vertex) -> int (the degree of a vertex)
 - list(graph.neighbors(vertex)) -> list (the neighbours of a vertex)
-- graph.subgraph(vertexset) -> graph (the subgraph induced by a set of vertices)
+- graph.subgraph(vertex set) -> graph (the subgraph induced by a set of vertices)
 - list(nx.find_cliques(graph.subgraph(vertex_set))) -> list (the cliques of a subgraph)
 - is_separator(graph, vertex_set) -> bool (whether a vertex set is a separator of a graph)
 - nx.node_connectivity(graph) -> int (the vertex-connectivity of a graph)
@@ -33,11 +35,13 @@ Let `F` = []
 While `As` has at least 1 element:
 	Let `A_i` be an element from `As`
 	For every vertex `v` in `A_i`:
-		If there exists a minimal separator `S` in neighbourhood of `v` such that `S` is missing only one edge `e`, add `e` to `A_i` and `F` and check for another such separator `S` in neighbourhood of `v`
+		Let `N(v)` be the neighborhood of `v` in `A_i`
+		For every non-clique vertex set `S` in `N(v)`:
+			If `S` is a separator and is missing 1 edge, add the missing edge to `A_i` and `F`
 	
 	For every vertex `v` in `A_i`:
 		If `v` is simplicial, eliminate it (remove the vertex, no need to add any edges)
-		If `v` is almost simplicial and the size of neighbourhood of `v` is equal to the vertex connectivity of `A_i`, add every missing edge in the neighbourhood of `v` to `A_i` and `F` and remove `v` form `A_i`.
+		Else if `v` is almost simplicial and the size of the neighborhood of `v` is equal to the vertex connectivity of `A_i`, add every missing edge in the neighborhood of `v` to `A_i` and `F`, then remove `v` form `A_i`.
 	
 	Let `L_i` be the list of vertex sets returned by calling `clique_minimal_separator_decomposition` with `A_i`.
 
@@ -47,18 +51,19 @@ While `As` has at least 1 element:
 		Add `G` to `G_i`
 
 	If `G_i` has one element, add it to `processed`
-	Otherwise add every element of `G_i` to `As`
+	Otherwise, add all the elements of `G_i` to `As`
 
-Return `processed` and `F`
+Return `F` and `processed`
 ```
 
 Definitions used:
 Separator: A set of vertices whose removal disconnects the graph
 Minimal separator: A separator that is not a subset of another separator
 Clique minimal separator: A minimal separator that is a clique
-Simplicial vertex: A vertex whose neighbourhood is a clique
+Simplicial vertex: A vertex whose neighborhood is a clique
 Almost clique: A vertex set that contains a vertex such that its removal makes the rest of the set a clique
-Almost simplicial vertex: A vertex whose neighbourhood is an almost clique
-Clique minimal separator decomposition: A decomposition of a graph into a set of atoms. This can be done by finding a clique minimal separator S and then recursively decomposing the subgraphs (C\cup S) for each connected component C of G\setminus S. The atoms are maximal connected components after this decomposition (they don't contain any clique minimal separators).
+Almost simplicial vertex: A vertex whose neighborhood is an almost clique
+Clique minimal separator decomposition: A decomposition of a graph into a set of atoms. This can be done by finding a clique minimal separator S and then recursively decomposing the subgraphs (C\cup S) for each connected component C of G\setminus S. The atoms are maximally connected components after this decomposition (they don't contain any clique minimal separators).
 
-The graphs I am working with are grids. The vertex names are integers. Can you write me a function that implements algorithm 1?
+def reduce_graph(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph]]:
+The graphs I am working with are grids. The vertex names are integers. Can you write me a function called `reduce_graph` that implements algorithm 1? Please add docstrings, to this function, and type annotations (as much as you can). Please also add comments to the code highlighting which step of the algorithm each part of the function is doing.
