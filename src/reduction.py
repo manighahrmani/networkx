@@ -16,6 +16,7 @@ Includes implementations of the following functions:
 """
 
 from typing import List, Set, Tuple
+from itertools import combinations
 import unittest
 import os
 import matplotlib.pyplot as plt  # type: ignore
@@ -266,64 +267,109 @@ def is_almost_simplicial(graph: nx.Graph, vertex: int) -> bool:
     return is_almost_clique(graph, neighbors)
 
 
-def minimum_chordal_triangulation(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph]]:
-    atoms: List[nx.Graph] = [G]
-    processed: List[nx.Graph] = []
-    fill_edges: Set[Tuple[int, int]] = set()
+def reduce_graph(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph]]:
+    """
+    Reduce an input graph G to construct a minimum chordal triangulation.
 
+    Parameters:
+    - G (nx.Graph): The input graph.
+
+    Returns:
+    - Tuple[Set[Tuple[int, int]], List[nx.Graph]]:
+        - Set of added edges F to make the graph chordal.
+        - List of processed connected components (subgraphs).
+
+    """
+    # Initialize
+    atoms = [G.copy()]  # Step 1: Let As = [G]
+    processed = []  # Step 2: Let processed = []
+    fill_edges = set()  # Step 3: Let F = []
+
+    # Step 4: While As has at least 1 element
     while atoms:
-        atom: nx.Graph = atoms.pop()
+        atom = atoms.pop(0)  # Step 4.1: Let A_i be an element from As
 
-        # Step 1: Check for minimal separators in the neighborhood of each vertex
-        for v in list(atom.nodes):
-            neighbors: Set[int] = set(atom.neighbors(v))
-            for separator in nx.enumerate_all_cliques(atom.subgraph(neighbors)):
-                if is_minimal_separator(atom, set(separator)):
-                    missing_edges: Set[Tuple[int, int]] = get_missing_edges(
-                        atom, set(separator))
-                    if len(missing_edges) == 1:
-                        for e in missing_edges:
-                            atom.add_edge(*e)
-                            fill_edges.add(e)
+        # Step 4.2: For every vertex v in A_i
+        for v in atom.nodes():
+            # Neighborhood of v in A_i
+            neighbours_of_v = set(atom.neighbors(v))
 
-        # Step 2: Eliminate simplicial and almost simplicial vertices
-        for v in list(atom.nodes):
-            neighbors = set(atom.neighbors(v))
+            # Step 4.2.1: For every non-clique vertex set S in N(v)
+            for r in range(2, len(neighbours_of_v) + 1):  # Subsets with at least 2 vertices
+                for combination in combinations(neighbours_of_v, r):
+                    vertex_set: Set[int] = set(combination)
+                    if not is_clique(atom, vertex_set):
+                        if is_separator(atom, vertex_set):
+                            missing_edges = get_missing_edges(atom, vertex_set)
+                            if len(missing_edges) == 1:
+                                # Add the missing edge to A_i and F
+                                e = missing_edges.pop()
+                                atom.add_edge(*e)
+                                fill_edges.add(e)
+
+        # Step 4.3: For every vertex v in A_i
+        for v in list(atom.nodes()):  # Convert to list for stable iteration
+            # Neighborhood of v in A_i
+            neighbours_of_v = set(atom.neighbors(v))
 
             if is_simplicial(atom, v):
+                # Step 4.3.1: If v is simplicial, eliminate it
                 atom.remove_node(v)
-
-            elif is_almost_simplicial(atom, v) and len(neighbors) == nx.node_connectivity(atom):
-                almost_simp_missing_edges: Set[Tuple[int, int]] = get_missing_edges_in_neighborhood(
-                    atom, v)
-                for e in almost_simp_missing_edges:
+            elif is_almost_simplicial(atom, v) and len(neighbours_of_v) == nx.node_connectivity(atom):
+                # Step 4.3.2: Else if v is almost simplicial and size of N(v) == vertex connectivity of A_i
+                missing_edges = get_missing_edges_in_neighborhood(atom, v)
+                for e in missing_edges:
                     atom.add_edge(*e)
                     fill_edges.add(e)
+
+                # Then remove v from A_i
                 atom.remove_node(v)
 
-        # Step 3: Clique minimal separator decomposition
-        atom_vertices = clique_minimal_separator_decomposition(atom)
-        new_atoms = [atom.subgraph(L).copy() for L in atom_vertices]
+        # Step 4.4: Let L_i be the list of vertex sets returned by clique_minimal_separator_decomposition with A_i
+        L_i = clique_minimal_separator_decomposition(atom)
 
-        if len(new_atoms) == 1:
-            processed.append(new_atoms[0])
+        # Step 4.5: Let G_i = []
+        G_i = []
+
+        # Step 4.6: For each vertex set L in L_i
+        for L in L_i:
+            # Let G be the graph induced on L
+            G = atom.subgraph(L).copy()
+            G_i.append(G)
+
+        # Step 4.7: If G_i has one element, add it to processed
+        if len(G_i) == 1:
+            processed.append(G_i[0])
         else:
-            atoms.extend(new_atoms)
+            # Otherwise, add all the elements of G_i to As
+            atoms.extend(G_i)
 
+    # Step 5: Return F and processed
     return fill_edges, processed
 
 
-# # Example usage
-# grid_graph = generate_grid_graph(3, 3)
-# added_edges, processed_components = minimum_chordal_triangulation(grid_graph)
+# Example usage
+grid_graph = generate_grid_graph(3, 3)
+added_edges, processed_components = reduce_graph(grid_graph)
 
-# # Show added edges
-# print("Added edges:", added_edges)
+# Show added edges
+print("Added edges:", added_edges)
 
-# # Show processed graphs
-# for i, processed_component in enumerate(processed_components):
-#     print(
-#         f"Processed graph {i + 1}: Nodes = {list(processed_component.nodes)}, Edges = {list(processed_component.edges)}")
+# Show processed graphs
+for i, processed_component in enumerate(processed_components):
+    print(
+        f"Processed graph {i + 1}: Nodes = {list(processed_component.nodes)}, Edges = {list(processed_component.edges)}")
+print(
+    f"Total processed graphs: {len(processed_components)}, Total added edges: {len(added_edges)}")
+# Plot the processed graphs
+for i, processed_component in enumerate(processed_components):
+    pos = {node: (int(node[3:5]) - 1, -(int(node[1:3]) - 1))
+           for node in processed_component.nodes()}
+    plt.figure(figsize=(8, 6))
+    nx.draw(processed_component, pos, with_labels=True, font_weight='bold')
+    plt.savefig(os.path.join('reduction', 'images', 'processed',
+                f'{i + 1}_processed_graph.png'))
+    plt.close()
 
 
 class TestReduction(unittest.TestCase):
