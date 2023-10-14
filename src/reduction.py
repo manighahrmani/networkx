@@ -313,17 +313,17 @@ def minimum_chordal_triangulation(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], Li
     return fill_edges, processed
 
 
-# Example usage
-grid_graph = generate_grid_graph(3, 3)
-added_edges, processed_components = minimum_chordal_triangulation(grid_graph)
+# # Example usage
+# grid_graph = generate_grid_graph(3, 3)
+# added_edges, processed_components = minimum_chordal_triangulation(grid_graph)
 
-# Show added edges
-print("Added edges:", added_edges)
+# # Show added edges
+# print("Added edges:", added_edges)
 
-# Show processed graphs
-for i, processed_component in enumerate(processed_components):
-    print(
-        f"Processed graph {i + 1}: Nodes = {list(processed_component.nodes)}, Edges = {list(processed_component.edges)}")
+# # Show processed graphs
+# for i, processed_component in enumerate(processed_components):
+#     print(
+#         f"Processed graph {i + 1}: Nodes = {list(processed_component.nodes)}, Edges = {list(processed_component.edges)}")
 
 
 class TestReduction(unittest.TestCase):
