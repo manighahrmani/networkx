@@ -14,10 +14,8 @@ Includes implementations of the following functions:
 """
 
 from typing import List, Set, Tuple
-from typing import List, Set
 import unittest
 import os
-from typing import Set
 import matplotlib.pyplot as plt  # type: ignore
 import networkx as nx  # type: ignore
 
@@ -120,6 +118,51 @@ def is_minimal_separator(graph: nx.Graph, vertexset: Set[int]) -> bool:
         if is_separator(graph, vertexset - {vertex}):
             return False
     return True
+
+
+def get_missing_edges_in_neighborhood(
+        graph: nx.Graph,
+        vertex: int
+) -> Set[Tuple[int, int]]:
+    """
+    Get missing edges in the neighborhood of a vertex.
+
+    Parameters:
+    - graph (nx.Graph): The input graph.
+    - vertex (int): The vertex whose neighborhood is considered.
+
+    Returns:
+    - Set[Tuple[int, int]]: A set of missing edges as tuples of two vertices.
+
+    Description:
+    Calculates the missing edges in the neighborhood of a vertex in the input graph.
+
+    """
+    neighbors: Set[int] = set(graph.neighbors(vertex))
+    missing_edges: Set[Tuple[int, int]] = get_missing_edges(graph, neighbors)
+    return missing_edges
+
+
+def get_missing_edges(graph: nx.Graph, vertexset: Set[int]) -> Set[Tuple[int, int]]:
+    """
+    Get missing edges in a subgraph induced by a vertex set.
+
+    Parameters:
+    - graph (nx.Graph): The input graph.
+    - vertexset (Set[int]): The set of vertices for which missing edges are to be calculated.
+
+    Returns:
+    - Set[Tuple[int, int]]: A set of missing edges as tuples of two vertices.
+
+    Description:
+    Calculates the missing edges in the subgraph induced by a vertex set in the input graph.
+
+    """
+    missing_edges: Set[Tuple[int, int]] = set()
+    subgraph: nx.Graph = graph.subgraph(vertexset)
+    complement_subgraph: nx.Graph = nx.complement(subgraph)
+    missing_edges.update(complement_subgraph.edges)
+    return missing_edges
 
 
 def is_clique_minimal_separator(graph: nx.Graph, vertexset: Set[int]) -> bool:
@@ -225,25 +268,24 @@ def is_almost_simplicial(graph: nx.Graph, vertex: int) -> bool:
 
 
 def minimum_chordal_triangulation(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph]]:
-    atoms = [G]
-    processed = []
-    fill_edges = set()
+    atoms: List[nx.Graph] = [G]
+    processed: List[nx.Graph] = []
+    fill_edges: Set[Tuple[int, int]] = set()
 
     while atoms:
-        atom = atoms.pop(0)
+        atom: nx.Graph = atoms.pop()
 
         # Step 1: Check for minimal separators in the neighborhood of each vertex
         for v in list(atom.nodes):
-            neighbors = set(atom.neighbors(v))
+            neighbors: Set[int] = set(atom.neighbors(v))
             for separator in nx.enumerate_all_cliques(atom.subgraph(neighbors)):
                 if is_minimal_separator(atom, set(separator)):
-                    missing_edges = [
-                        (u, v) for u in separator for v in separator if u < v and not atom.has_edge(u, v)
-                    ]
+                    missing_edges: Set[Tuple[int, int]] = get_missing_edges(
+                        atom, set(separator))
                     if len(missing_edges) == 1:
-                        e = missing_edges[0]
-                        atom.add_edge(*e)
-                        fill_edges.add(e)
+                        for e in missing_edges:
+                            atom.add_edge(*e)
+                            fill_edges.add(e)
 
         # Step 2: Eliminate simplicial and almost simplicial vertices
         for v in list(atom.nodes):
@@ -253,10 +295,9 @@ def minimum_chordal_triangulation(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], Li
                 atom.remove_node(v)
 
             elif is_almost_simplicial(atom, v) and len(neighbors) == nx.node_connectivity(atom):
-                missing_edges = [
-                    (u, v) for u in neighbors for v in neighbors if u < v and not atom.has_edge(u, v)
-                ]
-                for e in missing_edges:
+                almost_simp_missing_edges: Set[Tuple[int, int]] = get_missing_edges_in_neighborhood(
+                    atom, v)
+                for e in almost_simp_missing_edges:
                     atom.add_edge(*e)
                     fill_edges.add(e)
                 atom.remove_node(v)
@@ -281,9 +322,9 @@ added_edges, processed_components = minimum_chordal_triangulation(grid_graph)
 print("Added edges:", added_edges)
 
 # Show processed graphs
-for i, graph in enumerate(processed_components):
+for i, processed_component in enumerate(processed_components):
     print(
-        f"Processed graph {i + 1}: Nodes = {list(graph.nodes)}, Edges = {list(graph.edges)}")
+        f"Processed graph {i + 1}: Nodes = {list(processed_component.nodes)}, Edges = {list(processed_component.edges)}")
 
 
 class TestReduction(unittest.TestCase):
@@ -355,6 +396,30 @@ class TestReduction(unittest.TestCase):
         self.assertFalse(is_almost_clique(circle, {1, 2, 3, 4}))
         circle.add_edge(1, 3)
         self.assertTrue(is_almost_clique(self.graph, {1, 2, 3, 4}))
+
+    def test_get_missing_edges_in_neighborhood(self):
+        """
+        Test the get_missing_edges_in_neighborhood function.
+        """
+        circle = nx.Graph()
+        circle.add_edges_from([(1, 2), (2, 3), (3, 4), (4, 1)])
+        missing_edges = get_missing_edges_in_neighborhood(circle, 1)
+        self.assertEqual(missing_edges, {(2, 4)})
+
+        circle.add_edge(1, 3)
+        missing_edges = get_missing_edges_in_neighborhood(circle, 2)
+        self.assertEqual(missing_edges, set())
+
+    def test_get_missing_edges(self):
+        """
+        Test the get_missing_edges function.
+        """
+        circle = nx.Graph()
+        circle.add_edges_from([(1, 2), (2, 3), (3, 4), (4, 1)])
+        missing_edges = get_missing_edges(circle, {1, 2, 3})
+        self.assertEqual(missing_edges, {(1, 3)})
+        missing_edges = get_missing_edges(circle, {1, 2, 3, 4})
+        self.assertEqual(missing_edges, {(1, 3), (2, 4)})
 
 
 if __name__ == "__main__":
