@@ -1,5 +1,16 @@
 """
 Grid reduction module
+
+Includes implementations of the following functions:
+- generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph
+- is_clique(graph: nx.Graph, vertexset: Set[int]) -> bool
+- is_separator(graph: nx.Graph, vertexset: Set[int]) -> bool
+- is_minimal_separator(graph: nx.Graph, vertexset: Set[int]) -> bool
+- is_clique_minimal_separator(graph: nx.Graph, vertexset: Set[int]) -> bool
+- is_simplicial(graph: nx.Graph, vertex: int) -> bool
+- is_almost_clique(graph: nx.Graph, vertexset: Set[int]) -> bool
+- clique_minimal_separator_decomposition(graph: nx.Graph) -> List[Set[int]]
+- is_almost_simplicial(graph: nx.Graph, vertex: int) -> bool
 """
 
 from typing import List, Set
@@ -102,12 +113,10 @@ def is_minimal_separator(graph: nx.Graph, vertexset: Set[int]) -> bool:
     - bool: True if the vertex set is a minimal separator, otherwise False.
     """
     if not is_separator(graph, vertexset):
-        print("Not a separator")
         return False
 
     for vertex in vertexset:
         if is_separator(graph, vertexset - {vertex}):
-            print("Not a minimal separator")
             return False
     return True
 
@@ -174,40 +183,29 @@ def clique_minimal_separator_decomposition(graph: nx.Graph) -> List[Set[int]]:
     if graph.number_of_nodes() <= 1:
         return [set(graph.nodes())]
 
-    # Find a clique minimal separator
-    for vertexset in nx.find_cliques(graph):
+    # Find a clique minimal separator using enumerate_all_cliques
+    for vertexset in nx.enumerate_all_cliques(graph):
         if is_clique_minimal_separator(graph, set(vertexset)):
             break
     else:
         # If no clique minimal separator is found, the graph itself is an atom
         return [set(graph.nodes())]
 
-    # Remove the separator and find connected components
-    graph.remove_nodes_from(vertexset)
-    for component_nodes in nx.connected_components(graph):
+    # Create a copy of the graph for finding connected components
+    graph_copy = graph.copy()
+    graph_copy.remove_nodes_from(vertexset)
+
+    for component_nodes in nx.connected_components(graph_copy):
         # Union the component with the separator
-        atom = set(component_nodes) | set(vertexset)
+        atom_nodes = set(component_nodes) | set(vertexset)
+
+        # Create a subgraph induced by the atom nodes
+        subgraph = graph.subgraph(atom_nodes).copy()
 
         # Recursively decompose the subgraphs
-        subgraph = graph.subgraph(atom).copy()
         atoms.extend(clique_minimal_separator_decomposition(subgraph))
 
-    # Restore the original graph for further use
-    graph.add_nodes_from(vertexset)
-    for u, v in [(u, v) for u in vertexset for v in vertexset if u < v]:
-        if graph.has_edge(u, v):
-            graph.add_edge(u, v)
-
     return atoms
-
-
-# Test with your example
-circle = nx.Graph()
-circle.add_edges_from([(1, 2), (2, 3), (3, 4), (4, 1)])
-circle.add_edge(1, 3)
-atoms = clique_minimal_separator_decomposition(circle)
-for atom in atoms:
-    print(atom)
 
 
 def is_almost_simplicial(graph: nx.Graph, vertex: int) -> bool:
