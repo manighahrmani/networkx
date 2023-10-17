@@ -348,28 +348,40 @@ def reduce_graph(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph]]:
     return fill_edges, processed
 
 
-# Example usage
-grid_graph = generate_grid_graph(3, 3)
-added_edges, processed_components = reduce_graph(grid_graph)
+def test_reduction():
+    """
+    Test the reduction function.
+    """
+    # Example usage
+    grid_graph = generate_grid_graph(3, 3)
+    added_edges, processed_components = reduce_graph(grid_graph)
 
-# Show added edges
-print("Added edges:", added_edges)
-
-# Show processed graphs
-for i, processed_component in enumerate(processed_components):
+    # Show added edges
+    print("Added edges:", added_edges)
     print(
-        f"Processed graph {i + 1}: Nodes = {list(processed_component.nodes)}, Edges = {list(processed_component.edges)}")
-print(
-    f"Total processed graphs: {len(processed_components)}, Total added edges: {len(added_edges)}")
-# Plot the processed graphs
-for i, processed_component in enumerate(processed_components):
+        f"Total processed graphs: {len(processed_components)}, Total added edges: {len(added_edges)}")
+
+    # Show processed graphs
+    for i, processed_component in enumerate(processed_components):
+        print(
+            f"Processed graph {i + 1}: Nodes = {list(processed_component.nodes)}, Edges = {list(processed_component.edges)}")
+
+        pos = {node: (int(node[3:5]) - 1, -(int(node[1:3]) - 1))
+               for node in processed_component.nodes()}
+        plt.figure(figsize=(8, 6))
+        nx.draw(processed_component, pos, with_labels=True, font_weight='bold')
+        plt.savefig(os.path.join(f'{i + 1}_processed_graph.png'))
+        plt.close()
+
+
+    # Plot the original grid graph with the added edges
+    processed_graph = grid_graph.copy()
+    processed_graph.add_edges_from(added_edges)
     pos = {node: (int(node[3:5]) - 1, -(int(node[1:3]) - 1))
-           for node in processed_component.nodes()}
+        for node in processed_graph.nodes()}
     plt.figure(figsize=(8, 6))
-    nx.draw(processed_component, pos, with_labels=True, font_weight='bold')
-    plt.savefig(os.path.join('reduction', 'images', 'processed',
-                f'{i + 1}_processed_graph.png'))
-    plt.close()
+    nx.draw(processed_graph, pos, with_labels=True, font_weight='bold')
+    plt.savefig(os.path.join('3x3_processed.png'))
 
 
 class TestReduction(unittest.TestCase):
