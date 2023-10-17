@@ -267,7 +267,7 @@ def is_almost_simplicial(graph: nx.Graph, vertex: int) -> bool:
     return is_almost_clique(graph, neighbors)
 
 
-def reduce_graph(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph]]:
+def reduce_graph(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph], List[int]]:
     """
     Reduce an input graph G to construct a minimum chordal triangulation.
 
@@ -275,15 +275,17 @@ def reduce_graph(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph]]:
     - G (nx.Graph): The input graph.
 
     Returns:
-    - Tuple[Set[Tuple[int, int]], List[nx.Graph]]:
+    - Tuple[Set[Tuple[int, int]], List[nx.Graph], List[int]]:
         - Set of added edges F to make the graph chordal.
         - List of processed connected components (subgraphs).
+        - List of vertices in the order they were eliminated.
 
     """
     # Initialize
     atoms = [G.copy()]  # Step 1: Let As = [G]
     processed = []  # Step 2: Let processed = []
     fill_edges = set()  # Step 3: Let F = []
+    elimination_order = []  # List to keep track of the order in which vertices are eliminated
 
     # Step 4: While As has at least 1 element
     while atoms:
@@ -315,6 +317,7 @@ def reduce_graph(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph]]:
             if is_simplicial(atom, v):
                 # Step 4.3.1: If v is simplicial, eliminate it
                 atom.remove_node(v)
+                elimination_order.append(v)
             elif is_almost_simplicial(atom, v) and len(neighbours_of_v) == nx.node_connectivity(atom):
                 # Step 4.3.2: Else if v is almost simplicial and size of N(v) == vertex connectivity of A_i
                 missing_edges = get_missing_edges_in_neighborhood(atom, v)
@@ -324,6 +327,7 @@ def reduce_graph(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph]]:
 
                 # Then remove v from A_i
                 atom.remove_node(v)
+                elimination_order.append(v)
 
         # Step 4.4: Let L_i be the list of vertex sets returned by clique_minimal_separator_decomposition with A_i
         L_i = clique_minimal_separator_decomposition(atom)
@@ -344,8 +348,8 @@ def reduce_graph(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph]]:
             # Otherwise, add all the elements of G_i to As
             atoms.extend(G_i)
 
-    # Step 5: Return F and processed
-    return fill_edges, processed
+    # Step 5: Return F, processed, and elimination_order
+    return fill_edges, processed, elimination_order
 
 
 def test_reduction():
@@ -353,35 +357,40 @@ def test_reduction():
     Test the reduction function.
     """
     # Example usage
-    grid_graph = generate_grid_graph(3, 3)
-    added_edges, processed_components = reduce_graph(grid_graph)
+    graph = generate_grid_graph(3, 3)
+    added_edges, processed_components, ordering = reduce_graph(graph)
 
+    print("Elimination order:", ordering)
     # Show added edges
     print("Added edges:", added_edges)
     print(
-        f"Total processed graphs: {len(processed_components)}, Total added edges: {len(added_edges)}")
+        f"Total processed graphs: {len(processed_components)},"
+        "Total added edges: {len(added_edges)}")
+
+    for i, vertex in enumerate(ordering):
+        print(f"Eliminated vertex {i + 1}: {vertex}")
 
     # Show processed graphs
     for i, processed_component in enumerate(processed_components):
         print(
-            f"Processed graph {i + 1}: Nodes = {list(processed_component.nodes)}, Edges = {list(processed_component.edges)}")
+            f"Processed graph {i + 1}: Nodes = {list(processed_component.nodes)},",
+            "Edges = {list(processed_component.edges)}")
 
         pos = {node: (int(node[3:5]) - 1, -(int(node[1:3]) - 1))
                for node in processed_component.nodes()}
         plt.figure(figsize=(8, 6))
         nx.draw(processed_component, pos, with_labels=True, font_weight='bold')
-        plt.savefig(os.path.join(f'{i + 1}_processed_graph.png'))
+        plt.savefig(os.path.join(f'{i + 1}_processed_component.png'))
         plt.close()
 
-
     # Plot the original grid graph with the added edges
-    processed_graph = grid_graph.copy()
+    processed_graph = graph.copy()
     processed_graph.add_edges_from(added_edges)
     pos = {node: (int(node[3:5]) - 1, -(int(node[1:3]) - 1))
-        for node in processed_graph.nodes()}
+           for node in processed_graph.nodes()}
     plt.figure(figsize=(8, 6))
     nx.draw(processed_graph, pos, with_labels=True, font_weight='bold')
-    plt.savefig(os.path.join('3x3_processed.png'))
+    plt.savefig(os.path.join('graph_processed.png'))
 
 
 class TestReduction(unittest.TestCase):
@@ -480,4 +489,5 @@ class TestReduction(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    # unittest.main()
+    test_reduction()
