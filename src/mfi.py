@@ -41,10 +41,7 @@ def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
     relabeled_graph = nx.relabel_nodes(graph, mapping)
 
     # Generate the output path and write the edges to the file
-    output_path = os.path.join(SOLVER_PATH, "graph.txt")
-    with open(output_path, mode='w', encoding='utf8') as f:
-        for edge in relabeled_graph.edges():
-            f.write(f"{edge[0]} {edge[1]}\n")
+    write_input_graph_to_solver_folder(relabeled_graph)
 
     # Also save it to the logs folder
     folder_name: str = "logs"
@@ -52,6 +49,22 @@ def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
                               relabeled_graph, [folder_name])
 
     return relabeled_graph
+
+def write_input_graph_to_solver_folder(relabeled_graph: nx.Graph) -> None:
+    """
+    Write the edges of the input graph to a solver folder.
+
+    Parameters:
+    - relabeled_graph (nx.Graph): The graph with relabeled vertices.
+
+    The function writes the edges of the relabeled graph to a text file.
+    The file is saved in the solver path.
+    Each line in the file represents an edge and contains two vertex labels separated by a space.
+    """
+    output_path = os.path.join(SOLVER_PATH, "graph.txt")
+    with open(output_path, mode='w', encoding='utf8') as f:
+        for edge in relabeled_graph.edges():
+            f.write(f"{edge[0]} {edge[1]}\n")
 
 
 def write_input_graph_to_file(
