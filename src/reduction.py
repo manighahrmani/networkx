@@ -290,7 +290,12 @@ def reduce_graph(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph], Lis
     while atoms:
         atom = atoms.pop(0)
 
-        for v in list(atom.nodes()):  # Convert to list for stable iteration
+        # Sort vertices by degree (number of neighbors), ascending
+        vertices_by_degree = sorted(
+            atom.nodes(), key=lambda v: len(set(atom.neighbors(v))))
+
+        for v in vertices_by_degree:
+            # for v in list(atom.nodes()):  # Convert to list for stable iteration
             reason_for_elimination: str = ""
             neighbours_of_v = set(atom.neighbors(v))
 
@@ -298,19 +303,19 @@ def reduce_graph(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph], Lis
                 for combination in combinations(neighbours_of_v, r):
                     vertex_set: Set[int] = set(combination)
                     if is_clique(atom, vertex_set):
-                        break
+                        continue
                     if not is_minimal_separator(atom, vertex_set):
-                        break
+                        continue
 
                     missing_edges = get_missing_edges(atom, vertex_set)
                     if len(missing_edges) == 1:
                         e = missing_edges.pop()
                         atom.add_edge(*e)
                         fill_edges.add(e)
-                        print(f"Added edge {e} in the neighborhood of {v}")
+                        print(f"\t➕ Added edge {e} in the neighborhood of {v}")
 
             print(
-                f"{v} has degree {len(neighbours_of_v)} and the vertex connectivity is {nx.node_connectivity(atom)}")
+                f"\tℹ️ {v} has degree {len(neighbours_of_v)} and the vertex connectivity is {nx.node_connectivity(atom)}")
 
             if is_simplicial(atom, v):
                 atom.remove_node(v)
@@ -326,7 +331,7 @@ def reduce_graph(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph], Lis
                 reason_for_elimination = "almost simplicial"
 
             if reason_for_elimination:
-                print(f"Eliminated vertex {v} ({reason_for_elimination})")
+                print(f"❌ Eliminated vertex {v} ({reason_for_elimination})")
 
         L_i = clique_minimal_separator_decomposition(atom)
         G_i = []
@@ -348,25 +353,19 @@ def test_reduction():
     Test the reduction function.
     """
     # Example usage
-    graph = generate_grid_graph(3, 3)
+    graph = generate_grid_graph(3, 4)
     added_edges, processed_components, ordering = reduce_graph(graph)
 
-    print("Elimination order:", ordering)
+    print(
+        f"Elimination order: {ordering}, number of vertices: {len(ordering)}")
     # Show added edges
     print("Added edges:", added_edges)
     print(
         f"Total processed graphs: {len(processed_components)},"
         "Total added edges: {len(added_edges)}")
 
-    for i, vertex in enumerate(ordering):
-        print(f"Eliminated vertex {i + 1}: {vertex}")
-
     # Show processed graphs
     for i, processed_component in enumerate(processed_components):
-        print(
-            f"Processed graph {i + 1}: Nodes = {list(processed_component.nodes)},",
-            "Edges = {list(processed_component.edges)}")
-
         pos = {node: (int(node[3:5]) - 1, -(int(node[1:3]) - 1))
                for node in processed_component.nodes()}
         plt.figure(figsize=(8, 6))
