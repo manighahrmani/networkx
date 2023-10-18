@@ -345,6 +345,9 @@ def reduce_graph(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph], Lis
         else:
             atoms.extend(G_i)
 
+    # Eliminate atoms that have 1 or 0 vertices
+    processed = [G for G in processed if G.number_of_nodes() > 1]
+
     return fill_edges, processed, elimination_order
 
 
@@ -353,7 +356,7 @@ def test_reduction():
     Test the reduction function.
     """
     # Example usage
-    graph = generate_grid_graph(3, 4)
+    graph = generate_grid_graph(5, 7)
     added_edges, processed_components, ordering = reduce_graph(graph)
 
     print(
