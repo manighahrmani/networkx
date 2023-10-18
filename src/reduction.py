@@ -282,73 +282,64 @@ def reduce_graph(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph], Lis
 
     """
     # Initialize
-    atoms = [G.copy()]  # Step 1: Let As = [G]
-    processed = []  # Step 2: Let processed = []
-    fill_edges = set()  # Step 3: Let F = []
-    elimination_order = []  # List to keep track of the order in which vertices are eliminated
+    atoms = [G.copy()]
+    processed = []
+    fill_edges = set()
+    elimination_order = []
 
-    # Step 4: While As has at least 1 element
     while atoms:
-        atom = atoms.pop(0)  # Step 4.1: Let A_i be an element from As
+        atom = atoms.pop(0)
 
-        # Step 4.2: For every vertex v in A_i
-        for v in atom.nodes():
-            # Neighborhood of v in A_i
+        for v in list(atom.nodes()):  # Convert to list for stable iteration
+            reason_for_elimination: str = ""
             neighbours_of_v = set(atom.neighbors(v))
 
-            # Step 4.2.1: For every non-clique vertex set S in N(v)
             for r in range(2, len(neighbours_of_v) + 1):  # Subsets with at least 2 vertices
                 for combination in combinations(neighbours_of_v, r):
                     vertex_set: Set[int] = set(combination)
-                    if not is_clique(atom, vertex_set):
-                        if is_separator(atom, vertex_set):
-                            missing_edges = get_missing_edges(atom, vertex_set)
-                            if len(missing_edges) == 1:
-                                # Add the missing edge to A_i and F
-                                e = missing_edges.pop()
-                                atom.add_edge(*e)
-                                fill_edges.add(e)
+                    if is_clique(atom, vertex_set):
+                        break
+                    if not is_minimal_separator(atom, vertex_set):
+                        break
 
-        # Step 4.3: For every vertex v in A_i
-        for v in list(atom.nodes()):  # Convert to list for stable iteration
-            # Neighborhood of v in A_i
-            neighbours_of_v = set(atom.neighbors(v))
+                    missing_edges = get_missing_edges(atom, vertex_set)
+                    if len(missing_edges) == 1:
+                        e = missing_edges.pop()
+                        atom.add_edge(*e)
+                        fill_edges.add(e)
+                        print(f"Added edge {e} in the neighborhood of {v}")
+
+            print(
+                f"{v} has degree {len(neighbours_of_v)} and the vertex connectivity is {nx.node_connectivity(atom)}")
 
             if is_simplicial(atom, v):
-                # Step 4.3.1: If v is simplicial, eliminate it
                 atom.remove_node(v)
                 elimination_order.append(v)
+                reason_for_elimination = "simplicial"
             elif is_almost_simplicial(atom, v) and len(neighbours_of_v) == nx.node_connectivity(atom):
-                # Step 4.3.2: Else if v is almost simplicial and size of N(v) == vertex connectivity of A_i
                 missing_edges = get_missing_edges_in_neighborhood(atom, v)
                 for e in missing_edges:
                     atom.add_edge(*e)
                     fill_edges.add(e)
-
-                # Then remove v from A_i
                 atom.remove_node(v)
                 elimination_order.append(v)
+                reason_for_elimination = "almost simplicial"
 
-        # Step 4.4: Let L_i be the list of vertex sets returned by clique_minimal_separator_decomposition with A_i
+            if reason_for_elimination:
+                print(f"Eliminated vertex {v} ({reason_for_elimination})")
+
         L_i = clique_minimal_separator_decomposition(atom)
-
-        # Step 4.5: Let G_i = []
         G_i = []
 
-        # Step 4.6: For each vertex set L in L_i
         for L in L_i:
-            # Let G be the graph induced on L
             G = atom.subgraph(L).copy()
             G_i.append(G)
 
-        # Step 4.7: If G_i has one element, add it to processed
         if len(G_i) == 1:
             processed.append(G_i[0])
         else:
-            # Otherwise, add all the elements of G_i to As
             atoms.extend(G_i)
 
-    # Step 5: Return F, processed, and elimination_order
     return fill_edges, processed, elimination_order
 
 
