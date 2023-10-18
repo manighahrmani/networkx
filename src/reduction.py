@@ -351,39 +351,56 @@ def reduce_graph(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph], Lis
     return fill_edges, processed, elimination_order
 
 
-def test_reduction():
+def reduce_grid(
+        num_rows: int,
+        num_columns: int,
+        graph: nx.Graph
+) -> Tuple[Set[Tuple[int, int]], nx.Graph, List[int], nx.Graph]:
     """
-    Test the reduction function.
+    Reduces a grid graph, prints information about the reduction process,
+    and saves visualizations of the reduced and processed graphs.
+
+    Parameters:
+    - num_rows (int): The number of rows in the original grid.
+    - num_columns (int): The number of columns in the original grid.
+    - graph (nx.Graph): The original graph to be reduced.
+
+    Returns:
+    - Tuple[Set[Tuple[int, int]], nx.Graph, List[int], nx.Graph]:
+        - Set of added edges F to make the graph chordal.
+        - The reduced graph,
+        - List of vertices in the order they were eliminated.
+        - The processed graph (the original graph with added edges).
     """
-    # Example usage
-    graph = generate_grid_graph(5, 7)
     added_edges, processed_components, ordering = reduce_graph(graph)
 
-    print(
-        f"Elimination order: {ordering}, number of vertices: {len(ordering)}")
-    # Show added edges
-    print("Added edges:", added_edges)
-    print(
-        f"Total processed graphs: {len(processed_components)},"
-        "Total added edges: {len(added_edges)}")
+    print(f"{len(ordering)} vertices eliminated in the following order: {ordering}")
+    print(f"{len(added_edges)} edges added: {added_edges}")
+    print(f"{len(processed_components)} processed components: ")
 
-    # Show processed graphs
-    for i, processed_component in enumerate(processed_components):
-        pos = {node: (int(node[3:5]) - 1, -(int(node[1:3]) - 1))
-               for node in processed_component.nodes()}
-        plt.figure(figsize=(8, 6))
-        nx.draw(processed_component, pos, with_labels=True, font_weight='bold')
-        plt.savefig(os.path.join(f'{i + 1}_processed_component.png'))
-        plt.close()
+    if len(processed_components) > 1:
+        raise ValueError("More than one processed component")
 
-    # Plot the original grid graph with the added edges
+    reduced_graph = processed_components[0]
+    pos = {node: (int(node[3:5]) - 1, -(int(node[1:3]) - 1))
+           for node in reduced_graph.nodes()}
+    plt.figure(figsize=(8, 6))
+    nx.draw(reduced_graph, pos, with_labels=True, font_weight='bold')
+    plt.savefig(os.path.join('reduction', 'images',
+                'reduced', f'{num_rows}x{num_columns}.png'))
+    plt.close()
+
     processed_graph = graph.copy()
     processed_graph.add_edges_from(added_edges)
     pos = {node: (int(node[3:5]) - 1, -(int(node[1:3]) - 1))
            for node in processed_graph.nodes()}
     plt.figure(figsize=(8, 6))
     nx.draw(processed_graph, pos, with_labels=True, font_weight='bold')
-    plt.savefig(os.path.join('graph_processed.png'))
+    plt.savefig(os.path.join('reduction', 'images',
+                'processed', f'{num_rows}x{num_columns}.png'))
+    plt.close()
+
+    return added_edges, reduce_graph, ordering, processed_graph
 
 
 class TestReduction(unittest.TestCase):
@@ -482,5 +499,4 @@ class TestReduction(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    # unittest.main()
-    test_reduction()
+    unittest.main()
