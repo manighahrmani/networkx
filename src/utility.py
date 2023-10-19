@@ -26,7 +26,8 @@ def save_grid_to_image(
         num_rows: int,
         num_columns: int,
         grid: nx.Graph,
-        path_to_graph_image: List[str]
+        path_to_graph_image: List[str],
+        node_colors: list = None
 ) -> Dict[str, Tuple[int, int]]:
     """
     Save the grid graph as an image.
@@ -50,9 +51,9 @@ def save_grid_to_image(
     # Plot and save the original graph using the positions
     plt.figure(figsize=(8, 6))
     nx.draw(grid, pos, with_labels=True, font_weight='bold')
-    path = os.path.join(*path_to_graph_image)
     filename = f'{num_rows}x{num_columns}_grid.png'
-    plt.savefig(os.path.join(path, filename))
+    path = os.path.join(*path_to_graph_image, filename
+    plt.savefig(path)
     plt.close()
     return pos
 
