@@ -15,7 +15,7 @@ Includes implementations of the following functions:
 - is_almost_simplicial(graph: nx.Graph, vertex: int) -> bool
 """
 
-from typing import List, Set, Tuple
+from typing import List, Set, Tuple, Dict
 from itertools import combinations
 import unittest
 import os
@@ -354,7 +354,7 @@ def reduce_grid(
         num_rows: int,
         num_columns: int,
         graph: nx.Graph
-) -> Tuple[Set[Tuple[int, int]], nx.Graph, List[int], nx.Graph]:
+) -> Tuple[Set[Tuple[int, int]], nx.Graph, List[int], nx.Graph, Dict[str, Tuple[int, int]]]:
     """
     Reduces a grid graph, prints information about the reduction process,
     and saves visualizations of the reduced and processed graphs.
@@ -365,11 +365,12 @@ def reduce_grid(
     - graph (nx.Graph): The original graph to be reduced.
 
     Returns:
-    - Tuple[Set[Tuple[int, int]], nx.Graph, List[int], nx.Graph]:
+    - Tuple[Set[Tuple[int, int]], nx.Graph, List[int], nx.Graph, Dict[str, Tuple[int, int]]]:
         - Set of added edges F to make the graph chordal.
         - The reduced graph,
         - List of vertices in the order they were eliminated.
         - The processed graph (the original graph with added edges).
+        - The positions of the vertices in the processed graph.
     """
     added_edges, processed_components, ordering = reduce_graph(graph)
 
@@ -392,14 +393,14 @@ def reduce_grid(
     processed_graph = graph.copy()
     processed_graph.add_edges_from(added_edges)
 
-    pos = save_grid_to_image(
+    pos: Dict[str, Tuple[int, int]] = save_grid_to_image(
         num_columns=num_columns,
         num_rows=num_rows,
         grid=processed_graph,
         path_to_graph_image=['reduction', 'images', 'processed']
     )
 
-    return added_edges, reduced_graph, ordering, processed_graph
+    return added_edges, reduced_graph, ordering, processed_graph, pos
 
 
 class TestReduction(unittest.TestCase):
