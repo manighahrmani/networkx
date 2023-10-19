@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt  # type: ignore
 import networkx as nx  # type: ignore
 from config import SOLVER_PATH, ROWS, MAX_COLUMNS
 from src.utility import write_input_graph_to_file, write_input_graph_to_solver_folder
+from src.reduction import reduce_grid
 
 
 def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
@@ -111,14 +112,17 @@ def run_solver(
 
 def generate_triangulated_grid_graph(
         num_rows: int,
-        num_columns: int
+        num_columns: int,
+        reduce: bool = True
 ) -> Tuple[nx.Graph, List[Tuple[str, str]], nx.Graph, List[List[str]]]:
     """
     Generate a grid graph, triangulate it, and visualize the original and triangulated graphs.
+    Given that `reduce` is True, the function also reduces the grid graph before triangulating it.
 
     Parameters:
     - num_rows (int): The number of rows in the grid.
     - num_columns (int): The number of columns in the grid.
+    - reduce (bool): Whether to reduce the grid graph before triangulating it.
 
     Returns:
     - Tuple[nx.Graph, List[Tuple[str, str]], nx.Graph, List[List[str]]]:
@@ -139,6 +143,12 @@ def generate_triangulated_grid_graph(
     os.makedirs(os.path.join('images', 'triangulated'), exist_ok=True)
 
     grid = generate_grid_graph(num_rows, num_columns)
+
+    added_edges, grid, elimination_ordering, grid_with_reduction_edges = reduce_grid(
+        num_columns=num_columns,
+        num_rows=num_rows,
+        graph=grid
+    )
 
     # Write the input graph to the solver folder and to the logs folder
     write_input_graph_to_solver_folder(grid)
