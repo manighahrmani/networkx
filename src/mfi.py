@@ -6,11 +6,11 @@ import csv
 import subprocess
 import os
 from typing import List, Tuple, Set, Dict, Any
-import matplotlib.pyplot as plt  # type: ignore
 import networkx as nx  # type: ignore
 from config import SOLVER_PATH, ROWS, MAX_COLUMNS
-from src.utility import write_input_graph_to_file, write_input_graph_to_solver_folder, save_grid_to_image
-from src.reduction import reduce_grid
+from utility import write_input_graph_to_solver_folder, write_input_graph_to_file
+from utility import save_grid_to_image, save_grid_to_image_colored
+from reduction import reduce_grid
 
 
 def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
@@ -144,13 +144,19 @@ def generate_triangulated_grid_graph(
 
     grid = generate_grid_graph(num_rows, num_columns)
 
+    path_to_graph_image: List[str] = ["images", "original"]
+    # Get node positions for the original graph
+    # This is so that the vertices of grid graph and triangulated graph have the same positions
+    pos = save_grid_to_image(num_rows, num_columns, grid, path_to_graph_image)
+
     chords: List[Tuple[str, str]] = []
     if reduce:
-        chords, grid, elimination_ordering, grid_with_reduction_edges = reduce_grid(
+        chords_set, grid, elimination_ordering, grid_with_reduction_edges, _ = reduce_grid(
             num_columns=num_columns,
             num_rows=num_rows,
             graph=grid
         )
+        chords = list(chords_set)
 
     # Write the input graph to the solver folder and to the logs folder
     write_input_graph_to_solver_folder(grid)
@@ -161,11 +167,6 @@ def generate_triangulated_grid_graph(
     chords_after_reduction: List[Tuple[str, str]
                                  ] = run_solver(num_rows, num_columns)
     chords += chords_after_reduction
-
-    path_to_graph_image: List[str] = ["images", "original"]
-    # Get node positions for the original graph
-    # This is so that the vertices of grid graph and triangulated graph have the same positions
-    pos = save_grid_to_image(num_rows, num_columns, grid, path_to_graph_image)
 
     # Create the triangulated graph
     grid_triangulated: nx.Graph = grid.copy()
@@ -230,12 +231,14 @@ def generate_triangulated_grid_graph(
                    for node in grid_triangulated.nodes()]
 
     # Plot and save the triangulated graph using the same positions
-    plt.figure(figsize=(8, 6))
-    nx.draw(grid_triangulated, pos, with_labels=True,
-            font_weight='bold', node_color=node_colors)
-    plt.savefig(os.path.join('images', 'triangulated',
-                f'{num_rows}x{num_columns}_triangulated.png'))
-    plt.close()
+    save_grid_to_image_colored(
+        num_columns=num_columns,
+        num_rows=num_rows,
+        grid=grid_triangulated,
+        node_colors=node_colors,
+        path_to_graph_image=['images', 'triangulated'],
+        pos=pos
+    )
 
     return grid, chords, grid_triangulated, maximum_cliques
 
