@@ -400,7 +400,7 @@ def reduce_grid(
                 'processed', f'{num_rows}x{num_columns}.png'))
     plt.close()
 
-    return added_edges, reduce_graph, ordering, processed_graph
+    return added_edges, reduced_graph, ordering, processed_graph
 
 
 class TestReduction(unittest.TestCase):
