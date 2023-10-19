@@ -21,7 +21,7 @@ import unittest
 import os
 import matplotlib.pyplot as plt  # type: ignore
 import networkx as nx  # type: ignore
-from src.utility import write_input_graph_to_file
+from utility import write_input_graph_to_file, save_grid_to_image
 
 
 def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
@@ -53,7 +53,7 @@ def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
         num_rows=num_rows,
         folders=['reduction', 'logs', 'original']
     )
-    
+
     pos = {node: (int(node[3:5]) - 1, -(int(node[1:3]) - 1))
            for node in relabeled_graph.nodes()}
 
@@ -391,13 +391,13 @@ def reduce_grid(
 
     processed_graph = graph.copy()
     processed_graph.add_edges_from(added_edges)
-    pos = {node: (int(node[3:5]) - 1, -(int(node[1:3]) - 1))
-           for node in processed_graph.nodes()}
-    plt.figure(figsize=(8, 6))
-    nx.draw(processed_graph, pos, with_labels=True, font_weight='bold')
-    plt.savefig(os.path.join('reduction', 'images',
-                'processed', f'{num_rows}x{num_columns}.png'))
-    plt.close()
+
+    pos = save_grid_to_image(
+        num_columns=num_columns,
+        num_rows=num_rows,
+        grid=processed_graph,
+        path_to_graph_image=['reduction', 'images', 'processed']
+    )
 
     return added_edges, reduced_graph, ordering, processed_graph
 
