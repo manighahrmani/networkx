@@ -41,7 +41,7 @@ def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
     return relabeled_graph
 
 
-def write_input_graph_to_solver_folder(relabeled_graph: nx.Graph) -> None:
+def write_input_graph_to_solver_folder(graph: nx.Graph) -> None:
     """
     Write the edges of the input graph to a solver folder.
 
@@ -54,7 +54,7 @@ def write_input_graph_to_solver_folder(relabeled_graph: nx.Graph) -> None:
     """
     output_path = os.path.join(SOLVER_PATH, "graph.txt")
     with open(output_path, mode='w', encoding='utf8') as f:
-        for edge in relabeled_graph.edges():
+        for edge in graph.edges():
             f.write(f"{edge[0]} {edge[1]}\n")
 
 
