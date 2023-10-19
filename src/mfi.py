@@ -162,17 +162,10 @@ def generate_triangulated_grid_graph(
                                  ] = run_solver(num_rows, num_columns)
     chords += chords_after_reduction
 
+    path_to_graph_image: List[str] = ["images", "original"]
     # Get node positions for the original graph
     # This is so that the vertices of grid graph and triangulated graph have the same positions
-    pos = {node: (int(node[3:5]) - 1, -(int(node[1:3]) - 1))
-           for node in grid.nodes()}
-
-    # Plot and save the original graph using the positions
-    plt.figure(figsize=(8, 6))
-    nx.draw(grid, pos, with_labels=True, font_weight='bold')
-    plt.savefig(os.path.join('images', 'original',
-                f'{num_rows}x{num_columns}_grid.png'))
-    plt.close()
+    pos = save_grid_to_image(num_rows, num_columns, grid, path_to_graph_image)
 
     # Create the triangulated graph
     grid_triangulated: nx.Graph = grid.copy()
@@ -245,6 +238,35 @@ def generate_triangulated_grid_graph(
     plt.close()
 
     return grid, chords, grid_triangulated, maximum_cliques
+
+
+def save_grid_to_image(num_rows: int, num_columns: int, grid: nx.Graph, path_to_graph_image: List[str]) -> Dict[str, Tuple[int, int]]:
+    """
+    Save the grid graph as an image.
+
+    Parameters:
+    - num_rows (int): The number of rows in the grid.
+    - num_columns (int): The number of columns in the grid.
+    - grid (nx.Graph): The grid graph.
+    - path_to_graph_image (List[str]): The list of folders where the image will be saved.
+
+    Returns:
+    - Dict[str, Tuple[int, int]]: The positions of the nodes in the grid.
+
+    The function saves the grid graph as an image. The name of the image is in the format '{num_rows}x{num_columns}_grid.png'.
+    The image is saved in the specified folders.
+    """
+    pos = {node: (int(node[3:5]) - 1, -(int(node[1:3]) - 1))
+        for node in grid.nodes()}
+
+    # Plot and save the original graph using the positions
+    plt.figure(figsize=(8, 6))
+    nx.draw(grid, pos, with_labels=True, font_weight='bold')
+    path = os.path.join(*path_to_graph_image)
+    filename = f'{num_rows}x{num_columns}_grid.png'
+    plt.savefig(os.path.join(path, filename))
+    plt.close()
+    return pos
 
 
 def check_fill_in(num_rows: int, num_columns: int, fill_in: int) -> bool:
