@@ -19,7 +19,7 @@ import os
 import unittest
 import matplotlib.pyplot as plt  # type: ignore
 import networkx as nx  # type: ignore
-from src.config import SOLVER_PATH
+from config import SOLVER_PATH
 
 
 def save_grid_to_image(
