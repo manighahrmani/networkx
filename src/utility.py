@@ -26,8 +26,7 @@ def save_grid_to_image(
         num_rows: int,
         num_columns: int,
         grid: nx.Graph,
-        path_to_graph_image: List[str],
-        node_colors: list = None
+        path_to_graph_image: List[str]
 ) -> Dict[str, Tuple[int, int]]:
     """
     Save the grid graph as an image.
@@ -52,10 +51,42 @@ def save_grid_to_image(
     plt.figure(figsize=(8, 6))
     nx.draw(grid, pos, with_labels=True, font_weight='bold')
     filename = f'{num_rows}x{num_columns}_grid.png'
-    path = os.path.join(*path_to_graph_image, filename
+    path = os.path.join(*path_to_graph_image, filename)
     plt.savefig(path)
     plt.close()
     return pos
+
+
+def save_grid_to_image_colored(
+        num_rows: int,
+        num_columns: int,
+        pos: Dict[str, Tuple[int, int]],
+        grid: nx.Graph,
+        node_colors: List[str],
+        path_to_graph_image: List[str]
+) -> None:
+    """
+    Save the triangulated grid graph as a colored image.
+
+    Parameters:
+    - num_rows (int): The number of rows in the grid.
+    - num_columns (int): The number of columns in the grid.
+    - pos (Dict[str, Tuple[int, int]]): The positions of the nodes in the grid.
+    - grid (nx.Graph): The triangulated grid graph.
+    - node_colors (List[str]): The colors of the nodes.
+    - path_to_graph_image (List[str]): The path to the folder where the image should be saved.
+
+    The function saves the triangulated grid graph as a colored image.
+    The name of the image is in the format '{num_rows}x{num_columns}_triangulated.png'.
+    The image is saved in the 'images/triangulated' folder.
+    """
+    plt.figure(figsize=(8, 6))
+    nx.draw(grid, pos, with_labels=True,
+            font_weight='bold', node_color=node_colors)
+    filename = f'{num_rows}x{num_columns}_triangulated.png'
+    path = os.path.join(*path_to_graph_image, filename)
+    plt.savefig(path)
+    plt.close()
 
 
 def write_input_graph_to_solver_folder(graph: nx.Graph) -> None:
