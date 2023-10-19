@@ -348,7 +348,7 @@ def run_experiments() -> None:
 
         # Generate the triangulated grid
         _, chords, triangulated_grid, maximum_cliques = generate_triangulated_grid_graph(
-            num_rows=ROWS, num_columns=column)
+            num_rows=ROWS, num_columns=column, reduce=True)
 
         # Calculate the elimination ordering
         elimination_ordering = maximum_cardinality_search(triangulated_grid)
