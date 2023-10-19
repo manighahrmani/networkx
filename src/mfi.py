@@ -144,11 +144,13 @@ def generate_triangulated_grid_graph(
 
     grid = generate_grid_graph(num_rows, num_columns)
 
-    added_edges, grid, elimination_ordering, grid_with_reduction_edges = reduce_grid(
-        num_columns=num_columns,
-        num_rows=num_rows,
-        graph=grid
-    )
+    chords: List[Tuple[str, str]] = []
+    if reduce:
+        chords, grid, elimination_ordering, grid_with_reduction_edges = reduce_grid(
+            num_columns=num_columns,
+            num_rows=num_rows,
+            graph=grid
+        )
 
     # Write the input graph to the solver folder and to the logs folder
     write_input_graph_to_solver_folder(grid)
@@ -156,7 +158,9 @@ def generate_triangulated_grid_graph(
     write_input_graph_to_file(num_rows, num_columns,
                               grid, [folder_name])
 
-    chords = run_solver(num_rows, num_columns)
+    chords_after_reduction: List[Tuple[str, str]
+                                 ] = run_solver(num_rows, num_columns)
+    chords += chords_after_reduction
 
     # Get node positions for the original graph
     # This is so that the vertices of grid graph and triangulated graph have the same positions
