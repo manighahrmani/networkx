@@ -21,6 +21,7 @@ import unittest
 import os
 import matplotlib.pyplot as plt  # type: ignore
 import networkx as nx  # type: ignore
+from src.utility import write_input_graph_to_file
 
 
 def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
@@ -46,15 +47,13 @@ def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
     # Create a new graph with nodes relabeled
     relabeled_graph = nx.relabel_nodes(grid, mapping)
 
-    with open(
-        os.path.join('reduction', 'logs', 'original',
-                     f'{num_rows}x{num_columns}.txt'),
-        mode='w',
-        encoding='utf8'
-    ) as f:
-        for edge in relabeled_graph.edges():
-            f.write(f"{edge[0]} {edge[1]}\n")
-
+    write_input_graph_to_file(
+        graph=relabeled_graph,
+        num_columns=num_columns,
+        num_rows=num_rows,
+        folders=['reduction', 'logs', 'original']
+    )
+    
     pos = {node: (int(node[3:5]) - 1, -(int(node[1:3]) - 1))
            for node in relabeled_graph.nodes()}
 
