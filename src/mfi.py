@@ -13,7 +13,7 @@ from config import SOLVER_PATH, ROWS, MAX_COLUMNS
 
 def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
     """
-    Generate a grid graph with custom vertex labels and save its edges to a text file.
+    Generate a grid graph with custom vertex labels.
 
     Parameters:
     - num_rows (int): The number of rows in the grid.
@@ -25,8 +25,6 @@ def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
     The vertices of the generated graph are labeled as strings, starting with '1' 
     followed by two digits for the row number and two digits for the column number.
     For example, the vertex in the first row and first column is labeled '10101'.
-
-    The edges of the graph are saved in a text file.
     """
 
     # Generate the original grid graph
@@ -40,15 +38,8 @@ def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
     # Create a new graph with nodes relabeled
     relabeled_graph = nx.relabel_nodes(graph, mapping)
 
-    # Generate the output path and write the edges to the file
-    write_input_graph_to_solver_folder(relabeled_graph)
-
-    # Also save it to the logs folder
-    folder_name: str = "logs"
-    write_input_graph_to_file(num_rows, num_columns,
-                              relabeled_graph, [folder_name])
-
     return relabeled_graph
+
 
 def write_input_graph_to_solver_folder(relabeled_graph: nx.Graph) -> None:
     """
@@ -194,8 +185,14 @@ def generate_triangulated_grid_graph(
     os.makedirs(os.path.join('images', 'original'), exist_ok=True)
     os.makedirs(os.path.join('images', 'triangulated'), exist_ok=True)
 
-    # Generate the grid graph (`generate_grid_graph`) and find the fill edges (`run_solver`)
     grid = generate_grid_graph(num_rows, num_columns)
+
+    # Write the input graph to the solver folder and to the logs folder
+    write_input_graph_to_solver_folder(grid)
+    folder_name: str = "logs"
+    write_input_graph_to_file(num_rows, num_columns,
+                              grid, [folder_name])
+
     chords = run_solver(num_rows, num_columns)
 
     # Get node positions for the original graph
