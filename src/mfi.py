@@ -158,7 +158,6 @@ def generate_triangulated_grid_graph(
         )
         chords = [(str(u), str(v)) for u, v in chords_set]
 
-
     # Write the input graph to the solver folder and to the logs folder
     write_input_graph_to_solver_folder(grid)
     folder_name: str = "logs"
@@ -242,6 +241,23 @@ def generate_triangulated_grid_graph(
     )
 
     return grid, chords, grid_triangulated, maximum_cliques
+
+
+def compute_madj(vertex, ordering, graph):
+    """Compute the madj of a vertex based on the current ordering and graph."""
+    # Get the position of the vertex in the ordering
+    position = ordering.index(vertex)
+
+    # Initialize madj
+    madj = set()
+
+    # Iterate over all vertices that come after the current vertex in the ordering
+    for later_vertex in ordering[position+1:]:
+        # Check if there's a path from later_vertex to vertex that only goes through vertices
+        # earlier in the ordering than both vertex and later_vertex
+        if nx.has_path(graph, later_vertex, vertex):
+            madj.add(later_vertex)
+    return madj
 
 
 def check_fill_in(num_rows: int, num_columns: int, fill_in: int) -> bool:
