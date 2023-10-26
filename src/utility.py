@@ -14,7 +14,7 @@ It includes the following functions:
 - is_separator
 """
 
-from typing import List, Union, Tuple, Dict
+from typing import List, Union, Tuple, Dict, Optional
 import os
 import unittest
 import matplotlib.pyplot as plt  # type: ignore
@@ -28,7 +28,8 @@ def save_grid_to_image(
         grid: nx.Graph,
         path_to_graph_image: List[str],
         filename_end: str = "grid",
-) -> Dict[str, Tuple[int, int]]:
+        node_colors: Optional[List[str]] = None,
+) -> None:
     """
     Save the grid graph as an image.
 
@@ -38,65 +39,45 @@ def save_grid_to_image(
     - grid (nx.Graph): The grid graph.
     - path_to_graph_image (List[str]): The list of folders where the image will be saved.
     - filename_end (str): The name of the image file (default: "grid")
+    - node_colors (Optional[List[str]]): The list of colors for the nodes (default: None)
 
     Returns:
-    - Dict[str, Tuple[int, int]]: The positions of the nodes in the grid.
+    - None
 
     The function saves the grid graph as an image.
-    The name of the image is in the format '{num_rows}x{num_columns}_grid.png'.
+    The name of the image is in the format '{num_rows}x{num_columns}_{filename_end}.png'.
     The image is saved in the specified folders.
     """
+    if node_colors is None:
+        node_colors = ['lightblue'] * len(grid.nodes())
+
+    for node in grid.nodes():
+        if not isinstance(node, str):
+            raise TypeError("Nodes must be strings")
+        elif len(node) != 5 or node[0] != '1' or not node[1:].isnumeric():
+            raise ValueError(
+                "Nodes must be in the format '1nnmm'\
+                      where n is the row number and m is the column number")
+
     # Create a dictionary of positions for the nodes
-    # The keys are the nodes and the values are the positions (Tuple[int, int])
-    # 10101 is the top left corner and 10n0m is the bottom right corner
-    # where n is the number of rows and m is the number of columns
     pos: Dict[str, Tuple[int, int]] = {}
     for node in grid.nodes():
-        node_as_str: str = str(node)
-        row = int(node_as_str[1:3])
-        column = int(node_as_str[3:5])
+        row = int(node[1:3])
+        column = int(node[3:5])
         pos[node] = (column - 1, -(row - 1))
-
-    # pos = {node: (int(node[3:5]) - 1, -(int(node[1:3]) - 1))
-    #        for node in grid.nodes()}
 
     # Plot and save the original graph using the positions
     plt.figure(figsize=(8, 6))
-    nx.draw(grid, pos, with_labels=True, font_weight='bold')
+
+    nx.draw(
+        G=grid,
+        pos=pos,
+        with_labels=True,
+        font_weight='bold',
+        node_color=node_colors,
+    )
+
     filename = f'{num_rows}x{num_columns}_{filename_end}.png'
-    path = os.path.join(*path_to_graph_image, filename)
-    plt.savefig(path)
-    plt.close()
-    return pos
-
-
-def save_grid_to_image_colored(
-        num_rows: int,
-        num_columns: int,
-        pos: Dict[str, Tuple[int, int]],
-        grid: nx.Graph,
-        node_colors: List[str],
-        path_to_graph_image: List[str]
-) -> None:
-    """
-    Save the triangulated grid graph as a colored image.
-
-    Parameters:
-    - num_rows (int): The number of rows in the grid.
-    - num_columns (int): The number of columns in the grid.
-    - pos (Dict[str, Tuple[int, int]]): The positions of the nodes in the grid.
-    - grid (nx.Graph): The triangulated grid graph.
-    - node_colors (List[str]): The colors of the nodes.
-    - path_to_graph_image (List[str]): The path to the folder where the image should be saved.
-
-    The function saves the triangulated grid graph as a colored image.
-    The name of the image is in the format '{num_rows}x{num_columns}_triangulated.png'.
-    The image is saved in the 'images/triangulated' folder.
-    """
-    plt.figure(figsize=(8, 6))
-    nx.draw(grid, pos, with_labels=True,
-            font_weight='bold', node_color=node_colors)
-    filename = f'{num_rows}x{num_columns}_triangulated.png'
     path = os.path.join(*path_to_graph_image, filename)
     plt.savefig(path)
     plt.close()
