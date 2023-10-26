@@ -100,10 +100,12 @@ def write_input_graph_to_solver_folder(graph: nx.Graph) -> None:
             f.write(f"{edge[0]} {edge[1]}\n")
 
 
-def write_input_graph_to_file(
+def write_graph_to_file(
         num_rows: int,
         num_columns: int,
-        graph: nx.Graph, folders: List[str]
+        graph: nx.Graph,
+        folders: List[str],
+        filename: str = "",
 ) -> None:
     """
     Write the edges of the input graph to a text file.
@@ -113,17 +115,23 @@ def write_input_graph_to_file(
     - num_columns (int): The number of columns in the grid.
     - graph (nx.Graph): The graph with relabeled vertices.
     - folders (List[str]): The list of folders where the file will be saved.
+    - filename (str): The name of the file (default: "")
 
     The function writes the edges of the relabeled graph to a text file.
-    The name of the file is in the format '{num_rows}x{num_columns}.txt'.
     The file is saved in the specified folders.
     Each line in the file represents an edge and contains two vertex labels separated by a space.
+    If no filename is provided, the filename is in the format '{num_rows}x{num_columns}.txt'.
+    Else, the filename is the provided filename.
     """
     # Join the folders to form the path
     folder_path = os.path.join(*folders)
 
+    # Use the number of rows and columns to form the filename if none is provided
+    if filename == "":
+        filename = f'{num_rows}x{num_columns}.txt'
+
     with open(
-        os.path.join(folder_path, f'{num_rows}x{num_columns}.txt'),
+        os.path.join(folder_path, filename),
         mode='w',
         encoding='utf8'
     ) as f:
