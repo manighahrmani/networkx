@@ -218,7 +218,8 @@ def clique_minimal_separator_decomposition(graph: nx.Graph) -> List[Set[int]]:
     - graph (nx.Graph): The input graph.
 
     Returns:
-    - List[Set[int]]: A list of atoms (maximal connected components) obtained after the decomposition.
+    - List[Set[int]]: A list of atoms (maximal connected components)
+    obtained after the decomposition.
     """
     atoms = []
 
@@ -266,12 +267,12 @@ def is_almost_simplicial(graph: nx.Graph, vertex: int) -> bool:
     return is_almost_clique(graph, neighbors)
 
 
-def reduce_graph(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph], List[int]]:
+def reduce_graph(graph: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph], List[int]]:
     """
     Reduce an input graph G to construct a minimum chordal triangulation.
 
     Parameters:
-    - G (nx.Graph): The input graph.
+    - graph (nx.Graph): The input graph.
 
     Returns:
     - Tuple[Set[Tuple[int, int]], List[nx.Graph], List[int]]:
@@ -281,7 +282,7 @@ def reduce_graph(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph], Lis
 
     """
     # Initialize
-    atoms = [G.copy()]
+    atoms = [graph.copy()]
     processed = []
     fill_edges = set()
     elimination_order = []
@@ -298,7 +299,9 @@ def reduce_graph(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph], Lis
             reason_for_elimination: str = ""
             neighbours_of_v = set(atom.neighbors(v))
 
-            for r in range(2, len(neighbours_of_v) + 1):  # Subsets with at least 2 vertices
+            degree_v = len(neighbours_of_v)
+
+            for r in range(2, degree_v + 1):  # Subsets with at least 2 vertices
                 for combination in combinations(neighbours_of_v, r):
                     vertex_set: Set[int] = set(combination)
                     if is_clique(atom, vertex_set):
@@ -314,13 +317,14 @@ def reduce_graph(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph], Lis
                         print(f"\t➕ Added edge {e} in the neighborhood of {v}")
 
             print(
-                f"\tℹ️ {v} has degree {len(neighbours_of_v)} and the vertex connectivity is {nx.node_connectivity(atom)}")
+                f"\tℹ️ {v} has degree {degree_v}\
+                      and the vertex connectivity is {nx.node_connectivity(atom)}")
 
             if is_simplicial(atom, v):
                 atom.remove_node(v)
                 elimination_order.append(v)
                 reason_for_elimination = "simplicial"
-            elif is_almost_simplicial(atom, v) and len(neighbours_of_v) == nx.node_connectivity(atom):
+            elif is_almost_simplicial(atom, v) and degree_v == nx.node_connectivity(atom):
                 missing_edges = get_missing_edges_in_neighborhood(atom, v)
                 for e in missing_edges:
                     atom.add_edge(*e)
@@ -332,17 +336,18 @@ def reduce_graph(G: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph], Lis
             if reason_for_elimination:
                 print(f"❌ Eliminated vertex {v} ({reason_for_elimination})")
 
-        L_i = clique_minimal_separator_decomposition(atom)
-        G_i = []
+        atoms_vertex_set_i: List[Set[int]
+                                 ] = clique_minimal_separator_decomposition(atom)
+        atoms_i = []
 
-        for L in L_i:
-            G = atom.subgraph(L).copy()
-            G_i.append(G)
+        for atom_vertex_set_i in atoms_vertex_set_i:
+            graph = atom.subgraph(atom_vertex_set_i).copy()
+            atoms_i.append(graph)
 
-        if len(G_i) == 1:
-            processed.append(G_i[0])
+        if len(atoms_i) == 1:
+            processed.append(atoms_i[0])
         else:
-            atoms.extend(G_i)
+            atoms.extend(atoms_i)
 
     # Eliminate atoms that have 1 or 0 vertices
     processed = [G for G in processed if G.number_of_nodes() > 1]
