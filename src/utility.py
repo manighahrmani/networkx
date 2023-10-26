@@ -44,8 +44,18 @@ def save_grid_to_image(
     The name of the image is in the format '{num_rows}x{num_columns}_grid.png'.
     The image is saved in the specified folders.
     """
-    pos = {node: (int(node[3:5]) - 1, -(int(node[1:3]) - 1))
-           for node in grid.nodes()}
+    # Create a dictionary of positions for the nodes
+    # The keys are the nodes and the values are the positions (Tuple[int, int])
+    # 10101 is the top left corner and 10n0m is the bottom right corner
+    # where n is the number of rows and m is the number of columns
+    pos: Dict[str, Tuple[int, int]] = {}
+    for node in grid.nodes():
+        row = int(node[1:3])
+        column = int(node[3:5])
+        pos[node] = (column - 1, -(row - 1))
+
+    # pos = {node: (int(node[3:5]) - 1, -(int(node[1:3]) - 1))
+    #        for node in grid.nodes()}
 
     # Plot and save the original graph using the positions
     plt.figure(figsize=(8, 6))
