@@ -393,7 +393,7 @@ def reduce_grid(
     processed_graph = graph.copy()
     processed_graph.add_edges_from(added_edges)
 
-    pos: Dict[str, Tuple[int, int]] = save_grid_to_image(
+    pos = save_grid_to_image(
         num_columns=num_columns,
         num_rows=num_rows,
         grid=processed_graph,
