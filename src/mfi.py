@@ -8,7 +8,7 @@ import os
 from typing import List, Tuple, Set, Dict, Any
 import networkx as nx  # type: ignore
 from config import SOLVER_PATH, ROWS, MAX_COLUMNS
-from utility import write_input_graph_to_solver_folder, write_input_graph_to_file
+from utility import write_input_graph_to_solver_folder, write_graph_to_file
 from utility import save_grid_to_image, save_grid_to_image_colored
 from reduction import reduce_grid
 
@@ -165,10 +165,19 @@ def generate_triangulated_grid_graph(
     chords += list(reducing_chords_set)
 
     # Write the input graph to the solver folder and to the logs folder
-    write_input_graph_to_solver_folder(reduced_grid)
-    folder_name: str = "logs"
-    write_input_graph_to_file(num_rows, num_columns,
-                              grid, [folder_name])
+    write_graph_to_file(
+        num_rows=num_rows,
+        num_columns=num_columns,
+        graph=reduced_grid,
+        folders=[SOLVER_PATH],
+        filename="graph"
+    )
+    write_graph_to_file(
+        num_columns=num_columns,
+        num_rows=num_rows,
+        graph=reduced_grid,
+        folders=["logs"],
+    )
 
     chords_after_reduction: List[Tuple[int, int]
                                  ] = run_solver(num_rows, num_columns)
