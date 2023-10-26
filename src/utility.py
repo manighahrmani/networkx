@@ -50,8 +50,9 @@ def save_grid_to_image(
     # where n is the number of rows and m is the number of columns
     pos: Dict[str, Tuple[int, int]] = {}
     for node in grid.nodes():
-        row = int(node[1:3])
-        column = int(node[3:5])
+        node_as_str: str = str(node)
+        row = int(node_as_str[1:3])
+        column = int(node_as_str[3:5])
         pos[node] = (column - 1, -(row - 1))
 
     # pos = {node: (int(node[3:5]) - 1, -(int(node[1:3]) - 1))
