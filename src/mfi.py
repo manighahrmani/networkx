@@ -156,7 +156,8 @@ def generate_triangulated_grid_graph(
             num_rows=num_rows,
             graph=grid
         )
-        chords = list(chords_set)
+        chords = [(str(u), str(v)) for u, v in chords_set]
+
 
     # Write the input graph to the solver folder and to the logs folder
     write_input_graph_to_solver_folder(grid)
