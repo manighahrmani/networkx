@@ -21,7 +21,7 @@ import unittest
 import os
 import matplotlib.pyplot as plt  # type: ignore
 import networkx as nx  # type: ignore
-from utility import write_input_graph_to_file, save_grid_to_image
+from utility import write_graph_to_file, save_grid_to_image
 
 
 def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
@@ -47,7 +47,7 @@ def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
     # Create a new graph with nodes relabeled
     relabeled_graph = nx.relabel_nodes(grid, mapping)
 
-    write_input_graph_to_file(
+    write_graph_to_file(
         graph=relabeled_graph,
         num_columns=num_columns,
         num_rows=num_rows,
