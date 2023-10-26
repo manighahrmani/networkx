@@ -5,11 +5,11 @@ Minimum Fill-In Module
 import csv
 import subprocess
 import os
-from typing import List, Tuple, Set, Dict, Any
+from typing import List, Tuple, Set, Dict
 import networkx as nx  # type: ignore
 from config import SOLVER_PATH, ROWS, MAX_COLUMNS
-from utility import write_input_graph_to_solver_folder, write_graph_to_file
-from utility import save_grid_to_image, save_grid_to_image_colored
+from utility import write_graph_to_file
+from utility import save_grid_to_image
 from reduction import reduce_grid
 
 
