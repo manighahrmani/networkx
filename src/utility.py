@@ -83,23 +83,6 @@ def save_grid_to_image(
     plt.close()
 
 
-def write_input_graph_to_solver_folder(graph: nx.Graph) -> None:
-    """
-    Write the edges of the input graph to a solver folder.
-
-    Parameters:
-    - relabeled_graph (nx.Graph): The graph with relabeled vertices.
-
-    The function writes the edges of the relabeled graph to a text file.
-    The file is saved in the solver path.
-    Each line in the file represents an edge and contains two vertex labels separated by a space.
-    """
-    output_path = os.path.join(SOLVER_PATH, "graph.txt")
-    with open(output_path, mode='w', encoding='utf8') as f:
-        for edge in graph.edges():
-            f.write(f"{edge[0]} {edge[1]}\n")
-
-
 def write_graph_to_file(
         num_rows: int,
         num_columns: int,
