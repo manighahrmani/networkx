@@ -12,11 +12,11 @@ Given an elimination ordering, the higher adjacency of a vertex v, written madj(
 
 I already have a theorem that tells me how to safely eliminate vertices where their madj has 2 vertices so that the resulting elimination ordering still results in a minimum triangulation. So for example in a 5x5 grid, I know that I can safely eliminate 10505 first.
 
-I also have a theorem that tells me I can eliminate v at step i where madj(v) had n vertices if G_{i_{i-1}} is n-connected and madj(v) is an almost clique in G_{i-{i-1}} (there exists a vertex u in madj(v) such that madj(v)-u is a clique). For example after 10505 is eliminated in the 5x5 grid, I know I can eliminate 10405 next because its madj is {10305, 10404, 10504} and {10404, 10504} is a clique in G_{i_{i-1}} so {10305, 10404, 10504} is an almost clique.
+I also have a theorem that tells me I can eliminate v at step i where madj(v) had n vertices if G_{i_{i-1}} is n-connected and madj(v) is an almost clique in G_{i-{i-1}} (almost clique means that there exists a vertex u in madj(v) such that madj(v)-u is a clique). For example, after 10101, 10105, 10501 and 10505 are eliminated in the 5x5 grid, the resulting graph becomes 3-connected and I know I can eliminate 10405 next because its madj is {10305, 10404, 10504} and {10404, 10504} is a clique in G_{i_{i-1}} so {10305, 10404, 10504} is an almost clique.
 
 But I don't know anything else beyond this rule for vertices that have madj with 3 or more vertices.
 
-If I pass you the minimum elimination orderings of 5xn grids for 5>=n>=11, would you be able to come up with a rule/hypothesis about the elimination of vertices with madj of 3 or more?
+If I pass you the minimum elimination orderings of 5xn grids for 5>=n>=13, would you be able to come up with a rule/hypothesis about the elimination of vertices with madj of 3 or more?
 
 Minimum elimination orderings:
 
