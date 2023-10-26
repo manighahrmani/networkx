@@ -46,7 +46,7 @@ def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
 def run_solver(
         num_rows: int,
         num_columns: int
-) -> List[Tuple[str, str]]:
+) -> List[Tuple[int, int]]:
     """
     Run an external solver to generate fill edges that triangulate the graph.
 
@@ -55,7 +55,7 @@ def run_solver(
     - num_columns (int): The number of columns in the grid.
 
     Returns:
-    - List[Tuple[str, str]]: The list of fill edges added to triangulate the graph.
+    - List[Tuple[int, int]]: The fill edges added to triangulate the graph.
 
     This function runs an external solver script that reads the graph from a text file,
     triangulates the graph, and then writes the fill edges to an output text file.
@@ -96,7 +96,7 @@ def run_solver(
     print("STDERR:", result.stderr)
 
     # Read the output file to get the fill edges
-    fill_edges = []
+    fill_edges: List[Tuple[int, int]] = []
     with open(os.path.join(SOLVER_PATH, "output.txt"), mode="r", encoding="utf-8") as file:
         lines = file.readlines()
         for line in lines:
@@ -105,7 +105,8 @@ def run_solver(
 
             # Add the edge as a tuple to the fill_edges list
             if len(vertices) == 2:
-                fill_edges.append((vertices[0], vertices[1]))
+                edge: Tuple[int, int] = (int(vertices[0]), int(vertices[1]))
+                fill_edges.append(edge)
 
     return fill_edges
 
@@ -113,8 +114,9 @@ def run_solver(
 def generate_triangulated_grid_graph(
         num_rows: int,
         num_columns: int,
-        reduce: bool = True
-) -> Tuple[nx.Graph, List[Tuple[str, str]], nx.Graph, List[List[str]]]:
+        reduce: bool = True,
+        node_colouring: str = 'cliques'
+) -> Tuple[nx.Graph, List[Tuple[int, int]], nx.Graph, List[List[int]]]:
     """
     Generate a grid graph, triangulate it, and visualize the original and triangulated graphs.
     Given that `reduce` is True, the function also reduces the grid graph before triangulating it.
@@ -123,9 +125,11 @@ def generate_triangulated_grid_graph(
     - num_rows (int): The number of rows in the grid.
     - num_columns (int): The number of columns in the grid.
     - reduce (bool): Whether to reduce the grid graph before triangulating it.
+    - node_colouring (str): The type of node colouring to use. Can be 'cliques'
+    or a number e.g., '3' to colour all vertices with madj of size 3 in red.
 
     Returns:
-    - Tuple[nx.Graph, List[Tuple[str, str]], nx.Graph, List[List[str]]]:
+    - Tuple[nx.Graph, List[Tuple[int, int]], nx.Graph, List[List[int]]]:
         * The original grid graph.
         * The fill edges added to triangulate the graph.
         * The triangulated graph.f
@@ -147,32 +151,36 @@ def generate_triangulated_grid_graph(
     path_to_graph_image: List[str] = ["images", "original"]
     # Get node positions for the original graph
     # This is so that the vertices of grid graph and triangulated graph have the same positions
-    pos = save_grid_to_image(num_rows, num_columns, grid, path_to_graph_image)
+    save_grid_to_image(num_rows, num_columns, grid, path_to_graph_image)
 
-    chords: List[Tuple[str, str]] = []
+    chords: List[Tuple[int, int]] = []
     if reduce:
-        chords_set, grid, elimination_ordering, grid_with_reduction_edges, _ = reduce_grid(
+        reducing_chords_set: Set[Tuple[int, int]] = set()
+        reducing_chords_set, reduced_grid, _, _, _ = reduce_grid(
             num_columns=num_columns,
             num_rows=num_rows,
             graph=grid
         )
-        chords = [(str(u), str(v)) for u, v in chords_set]
+
+    chords += list(reducing_chords_set)
 
     # Write the input graph to the solver folder and to the logs folder
-    write_input_graph_to_solver_folder(grid)
+    write_input_graph_to_solver_folder(reduced_grid)
     folder_name: str = "logs"
     write_input_graph_to_file(num_rows, num_columns,
                               grid, [folder_name])
 
-    chords_after_reduction: List[Tuple[str, str]
+    chords_after_reduction: List[Tuple[int, int]
                                  ] = run_solver(num_rows, num_columns)
+
     chords += chords_after_reduction
+    print('Added this many chords:', len(chords), chords)
 
     # Create the triangulated graph
     grid_triangulated: nx.Graph = grid.copy()
-    grid_triangulated.add_edges_from(chords)  # This should work
+    grid_triangulated.add_edges_from(chords)
 
-    # Check if the graph is truly chordal (triangulated)
+    # # Check if the graph is truly chordal (triangulated)
     if not nx.is_chordal(grid_triangulated):
         raise RuntimeError("The graph is not triangulated!")
 
@@ -181,16 +189,16 @@ def generate_triangulated_grid_graph(
         raise RuntimeError("The fill-in does not match the expected formula!")
 
     # Find all cliques
-    cliques: List[List[str]] = list(nx.find_cliques(grid_triangulated))
+    cliques: List[List[int]] = list(nx.find_cliques(grid_triangulated))
 
     # Find the maximum clique size
     max_clique_size = max([len(clique) for clique in cliques])
 
     # Find all cliques of the maximum size
-    maximum_cliques: List[List[str]] = [
+    maximum_cliques: List[List[int]] = [
         clique for clique in cliques if len(clique) == max_clique_size]
 
-    # Write the chords and maximum cliques to a text file
+    # Write the chords and maximum cliques to the text file in logs
     with open(
         os.path.join("logs", f'{num_rows}x{num_columns}.txt'),
         mode='a',
@@ -205,51 +213,42 @@ def generate_triangulated_grid_graph(
                 f.write(f"{node} ")
             f.write("\n")
 
-    # Create a dictionary to store color for each node
-    node_color_dict = {}
-
-    # Create a list of unique colors (one for each maximal clique)
-    unique_colors = [
-        'green', 'blue', 'purple', 'brown',
-        'orange', 'pink', 'yellow', 'black',
-        'cyan', 'magenta', 'lime', 'gray',
-        'olive', 'maroon', 'navy', 'teal',
-        'silver', 'white'
-    ]
-
-    if len(maximum_cliques) > len(unique_colors):
-        # Reuse colors if there are not enough unique colors
-        unique_colors = unique_colors * 10  # Duplicate the list 10 times
-
-    # Assign a unique color to each maximal clique
-    for i, max_clique in enumerate(maximum_cliques):
-        for node in max_clique:
-            node_color_dict[node] = unique_colors[i]
-
-    # Generate list of node colors based on the populated node_color_dict
-    node_colors = [node_color_dict.get(node, 'gray')
-                   for node in grid_triangulated.nodes()]
-
-    # Plot and save the triangulated graph using the same positions
-    save_grid_to_image_colored(
+    path_to_graph_image = ["images", "triangulated"]
+    # Get node positions for the original graph
+    # This is so that the vertices of grid graph and triangulated graph have the same positions
+    save_grid_to_image(
         num_columns=num_columns,
         num_rows=num_rows,
         grid=grid_triangulated,
-        node_colors=node_colors,
-        path_to_graph_image=['images', 'triangulated'],
-        pos=pos
+        path_to_graph_image=path_to_graph_image,
+        filename_end="triangulated"
     )
 
     return grid, chords, grid_triangulated, maximum_cliques
 
 
-def compute_madj(vertex, ordering, graph):
-    """Compute the madj of a vertex based on the current ordering and graph."""
+def compute_madj(
+        vertex: int,
+        ordering: List[int],
+        graph: nx.Graph
+):
+    """
+    Compute the madj of a vertex based on the current ordering and graph.
+
+    Parameters:
+    - vertex (int): The vertex whose madj is to be computed.
+    - ordering (List[int]): The current ordering of the vertices.
+    - graph (nx.Graph): The current graph.
+
+    Returns:
+    - Set[int]: The madj of the vertex.
+    """
     # Get the position of the vertex in the ordering
     position = ordering.index(vertex)
+    # position = ordering.index(vertex)
 
     # Initialize madj
-    madj = set()
+    madj: Set[int] = set()
 
     # Iterate over all vertices that come after the current vertex in the ordering
     for later_vertex in ordering[position+1:]:
@@ -291,7 +290,7 @@ def check_fill_in(num_rows: int, num_columns: int, fill_in: int) -> bool:
             return fill_in == 25 + 8 * (num_columns - 5)
 
 
-def maximum_cardinality_search(graph: nx.Graph) -> List[Any]:
+def maximum_cardinality_search(graph: nx.Graph) -> List[int]:
     """
     Perform a Maximum Cardinality Search (MCS) on a given graph to find an elimination ordering.
 
@@ -299,7 +298,7 @@ def maximum_cardinality_search(graph: nx.Graph) -> List[Any]:
     - graph (networkx.Graph): The input graph, assumed to be chordal.
 
     Returns:
-    - List[Any]: A list representing the elimination ordering of the vertices.
+    - List[int]: A list representing the elimination ordering of the vertices.
 
     Note:
     This function assumes that the input graph G is chordal. Using it on a non-chordal graph
@@ -307,9 +306,9 @@ def maximum_cardinality_search(graph: nx.Graph) -> List[Any]:
     """
 
     # Initialize
-    visited: Set[Any] = set()
-    label: Dict[Any, int] = {}
-    order: List[Any] = []
+    visited: Set[int] = set()
+    label: Dict[int, int] = {}
+    order: List[int] = []
 
     # Initialize all vertices with label 0
     for node in graph.nodes():
@@ -365,7 +364,7 @@ def run_experiments() -> None:
 
         # Generate the triangulated grid
         _, chords, triangulated_grid, maximum_cliques = generate_triangulated_grid_graph(
-            num_rows=ROWS, num_columns=column, reduce=True)
+            num_rows=ROWS, num_columns=column, reduce=True, node_colouring='cliques')
 
         # Calculate the elimination ordering
         elimination_ordering = maximum_cardinality_search(triangulated_grid)
