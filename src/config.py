@@ -31,6 +31,6 @@ else:
     raise EnvironmentError("Unsupported operating system")
 
 ROWS = 5
-MAX_COLUMNS = 5
+MAX_COLUMNS = 12
 
 CSV_FILENAME = f'{ROWS}_grid_data.csv'
