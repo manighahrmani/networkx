@@ -128,13 +128,13 @@ def get_missing_edges_in_neighborhood(
     return missing_edges
 
 
-def get_missing_edges(graph: nx.Graph, vertexset: Set[int]) -> Set[Tuple[int, int]]:
+def get_missing_edges(graph: nx.Graph, vertexset: Set[str]) -> Set[Tuple[str, str]]:
     """
     Get missing edges in a subgraph induced by a vertex set.
 
     Parameters:
     - graph (nx.Graph): The input graph.
-    - vertexset (Set[int]): The set of vertices for which missing edges are to be calculated.
+    - vertexset (Set[int]): The set of vertices whose subgraph is considered.
 
     Returns:
     - Set[Tuple[int, int]]: A set of missing edges as tuples of two vertices.
@@ -143,7 +143,7 @@ def get_missing_edges(graph: nx.Graph, vertexset: Set[int]) -> Set[Tuple[int, in
     Calculates the missing edges in the subgraph induced by a vertex set in the input graph.
 
     """
-    missing_edges: Set[Tuple[int, int]] = set()
+    missing_edges: Set[Tuple[str, str]] = set()
     subgraph: nx.Graph = graph.subgraph(vertexset)
     complement_subgraph: nx.Graph = nx.complement(subgraph)
     missing_edges.update(complement_subgraph.edges)
