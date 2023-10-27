@@ -7,7 +7,7 @@ import subprocess
 import os
 from typing import List, Tuple, Set, Dict
 import networkx as nx  # type: ignore
-from config import SOLVER_PATH, ROWS, MAX_COLUMNS
+from config import SOLVER_PATH, ROWS, MAX_COLUMNS, CSV_FILENAME
 from utility import write_graph_to_file, save_grid_to_image
 from reduction import reduce_grid, generate_grid_graph
 
@@ -15,7 +15,7 @@ from reduction import reduce_grid, generate_grid_graph
 def run_solver(
         num_rows: int,
         num_columns: int
-) -> List[Tuple[int, int]]:
+) -> List[Tuple[str, str]]:
     """
     Run an external solver to generate fill edges that triangulate the graph.
 
@@ -24,18 +24,16 @@ def run_solver(
     - num_columns (int): The number of columns in the grid.
 
     Returns:
-    - List[Tuple[int, int]]: The fill edges added to triangulate the graph.
+    - List[Tuple[str, str]]: A list of fill edges as tuples.
 
     This function runs an external solver script that reads the graph from a text file,
     triangulates the graph, and then writes the fill edges to an output text file.
     The function reads this output file and returns the fill edges as a list of tuples.
     """
 
-    # Read the number of added edges from the CSV file if it exists
-    csv_filename = f'{num_rows}_grid_data.csv'
     num_added_chords = None
-    if os.path.exists(csv_filename):
-        with open(csv_filename, mode='r', newline='', encoding="utf-8") as csvfile:
+    if os.path.exists(CSV_FILENAME):
+        with open(CSV_FILENAME, mode='r', newline='', encoding="utf-8") as csvfile:
             csv_reader = csv.reader(csvfile)
             _ = next(csv_reader)
             for row in csv_reader:
@@ -325,13 +323,11 @@ def run_experiments() -> None:
     number of added chords for each grid, saving these data points to a CSV file.
     Additionally, it writes the added chords and largest clique to a text file for each grid.
     """
-
-    csv_filename = f'{ROWS}_grid_data.csv'
     existing_data = {}
 
     # Read existing data from the CSV file if it exists
-    if os.path.exists(csv_filename):
-        with open(csv_filename, mode='r', newline='', encoding="utf-8") as csvfile:
+    if os.path.exists(CSV_FILENAME):
+        with open(CSV_FILENAME, mode='r', newline='', encoding="utf-8") as csvfile:
             csv_reader = csv.reader(csvfile)
             _ = next(csv_reader)
             for row in csv_reader:
@@ -366,7 +362,7 @@ def run_experiments() -> None:
             existing_data[column] = (num_added_chords, treewidth)
 
     # Write the updated data back to the CSV file
-    with open(csv_filename, mode='w', newline='', encoding="utf-8") as csvfile:
+    with open(CSV_FILENAME, mode='w', newline='', encoding="utf-8") as csvfile:
         csv_writer = csv.writer(csvfile)
         csv_writer.writerow(
             ['Columns', 'Rows', 'Num_Added_Chords', 'Treewidth'])
