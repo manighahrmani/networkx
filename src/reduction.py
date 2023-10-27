@@ -21,12 +21,12 @@ import unittest
 import os
 import matplotlib.pyplot as plt  # type: ignore
 import networkx as nx  # type: ignore
-from utility import write_graph_to_file, save_grid_to_image
+from utility import save_grid_to_image
 
 
 def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
     """
-    Generate a grid graph with custom vertex labels and save its edges to a text file.
+    Generate a grid graph with custom vertex labels.
 
     Parameters:
     - num_rows (int): The number of rows in the grid.
@@ -34,6 +34,8 @@ def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
 
     Returns:
     - nx.Graph: The generated graph with custom vertex labels.
+
+    The vertex labels are of the form 1rrcc, where rr is the row number and cc is the column number.
     """
 
     # Generate the original grid graph
@@ -41,28 +43,12 @@ def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
 
     # Generate a mapping from old labels (tuples) to new labels (strings).
     # Add a leading '1' to each label to avoid leading zeros.
+    # The new labels are of the form 1rrcc, where rr is the row number and cc is the column number.
     mapping = {(r, c): f"1{r+1:02}{c+1:02}" for r in range(num_rows)
                for c in range(num_columns)}
 
     # Create a new graph with nodes relabeled
     relabeled_graph = nx.relabel_nodes(grid, mapping)
-
-    write_graph_to_file(
-        graph=relabeled_graph,
-        num_columns=num_columns,
-        num_rows=num_rows,
-        folders=['reduction', 'logs', 'original']
-    )
-
-    pos = {node: (int(node[3:5]) - 1, -(int(node[1:3]) - 1))
-           for node in relabeled_graph.nodes()}
-
-    # Plot and save the original graph using the positions
-    plt.figure(figsize=(8, 6))
-    nx.draw(relabeled_graph, pos, with_labels=True, font_weight='bold')
-    plt.savefig(os.path.join('reduction', 'images', 'original',
-                f'{num_rows}x{num_columns}_grid.png'))
-    plt.close()
 
     return relabeled_graph
 
