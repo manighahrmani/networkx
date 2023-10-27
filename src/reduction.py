@@ -360,10 +360,8 @@ def reduce_graph(graph: nx.Graph) -> Tuple[Set[Tuple[str, str]], List[nx.Graph],
 
 
 def reduce_grid(
-        num_rows: int,
-        num_columns: int,
         graph: nx.Graph
-) -> Tuple[Set[Tuple[int, int]], nx.Graph, List[int], nx.Graph, Dict[str, Tuple[int, int]]]:
+) -> Tuple[Set[Tuple[str, str]], nx.Graph, List[str], nx.Graph]:
     """
     Reduces a grid graph, prints information about the reduction process,
     and saves visualizations of the reduced and processed graphs.
@@ -374,13 +372,15 @@ def reduce_grid(
     - graph (nx.Graph): The original graph to be reduced.
 
     Returns:
-    - Tuple[Set[Tuple[int, int]], nx.Graph, List[int], nx.Graph, Dict[str, Tuple[int, int]]]:
+    - Tuple[Set[Tuple[str, str]], nx.Graph, List[str], nx.Graph:
         - Set of added edges F to make the graph chordal.
         - The reduced graph,
-        - List of vertices in the order they were eliminated.
+        - List of vertices in the order they were eliminated (elimination ordering).
         - The processed graph (the original graph with added edges).
-        - The positions of the vertices in the processed graph.
     """
+    added_edges: Set[Tuple[str, str]] = set()
+    processed_components: List[nx.Graph] = []
+    ordering: List[str] = []
     added_edges, processed_components, ordering = reduce_graph(graph)
 
     print(f"{len(ordering)} vertices eliminated in the following order: {ordering}")
@@ -390,26 +390,12 @@ def reduce_grid(
     if len(processed_components) > 1:
         raise ValueError("More than one processed component")
 
-    reduced_graph = processed_components[0]
-    pos = {node: (int(node[3:5]) - 1, -(int(node[1:3]) - 1))
-           for node in reduced_graph.nodes()}
-    plt.figure(figsize=(8, 6))
-    nx.draw(reduced_graph, pos, with_labels=True, font_weight='bold')
-    plt.savefig(os.path.join('reduction', 'images',
-                'reduced', f'{num_rows}x{num_columns}.png'))
-    plt.close()
+    reduced_graph: nx.Graph = processed_components[0]
 
-    processed_graph = graph.copy()
+    processed_graph: nx.Graph = graph.copy()
     processed_graph.add_edges_from(added_edges)
 
-    pos = save_grid_to_image(
-        num_columns=num_columns,
-        num_rows=num_rows,
-        grid=processed_graph,
-        path_to_graph_image=['reduction', 'images', 'processed']
-    )
-
-    return added_edges, reduced_graph, ordering, processed_graph, pos
+    return added_edges, reduced_graph, ordering, processed_graph
 
 
 class TestReduction(unittest.TestCase):
