@@ -214,27 +214,26 @@ def generate_triangulated_grid_graph(
 
 
 def compute_madj(
-        vertex: int,
-        ordering: List[int],
+        vertex: str,
+        ordering: List[str],
         graph: nx.Graph
-):
+) -> Set[str]:
     """
     Compute the madj of a vertex based on the current ordering and graph.
 
     Parameters:
-    - vertex (int): The vertex whose madj is to be computed.
-    - ordering (List[int]): The current ordering of the vertices.
-    - graph (nx.Graph): The current graph.
+    - vertex (str): The vertex whose madj is to be computed.
+    - ordering (List[str]): The current ordering of the vertices.
+    - graph (nx.Graph): The graph.
 
     Returns:
-    - Set[int]: The madj of the vertex.
+    - Set[str]: The madj of the vertex.
     """
     # Get the position of the vertex in the ordering
-    position = ordering.index(vertex)
-    # position = ordering.index(vertex)
+    position: int = ordering.index(vertex)
 
     # Initialize madj
-    madj: Set[int] = set()
+    madj: Set[str] = set()
 
     # Iterate over all vertices that come after the current vertex in the ordering
     for later_vertex in ordering[position+1:]:
