@@ -5,7 +5,7 @@ Minimum Fill-In Module
 import csv
 import subprocess
 import os
-from typing import List, Tuple, Set, Dict
+from typing import List, Tuple, Set, Dict, Optional
 import networkx as nx  # type: ignore
 from config import SOLVER_PATH, ROWS, MAX_COLUMNS, CSV_FILENAME
 from utility import write_graph_to_file, save_grid_to_image
@@ -31,7 +31,7 @@ def run_solver(
     The function reads this output file and returns the fill edges as a list of tuples.
     """
 
-    num_added_chords = None
+    num_added_chords: Optional[int] = None
     if os.path.exists(CSV_FILENAME):
         with open(CSV_FILENAME, mode='r', newline='', encoding="utf-8") as csvfile:
             csv_reader = csv.reader(csvfile)
@@ -42,9 +42,9 @@ def run_solver(
                     break
 
     # Prepare the command to run the solver
-    os_type = os.name
-    script_filename = "run_solver.bat" if os_type == "nt" else "run_solver.sh"
-    cmd = os.path.join(SOLVER_PATH, script_filename)
+    os_type: str = os.name
+    script_filename: str = "run_solver.bat" if os_type == "nt" else "run_solver.sh"
+    cmd: str = os.path.join(SOLVER_PATH, script_filename)
 
     # Add the parameters to the command
     if num_added_chords is not None:
@@ -55,15 +55,22 @@ def run_solver(
 
     # Run the solver
     # subprocess.run(cmd, shell=True, cwd=SOLVER_PATH, check=True)
-    result = subprocess.run(cmd, shell=True, cwd=SOLVER_PATH, check=True,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    result: subprocess.CompletedProcess = subprocess.run(
+        cmd,
+        shell=True,
+        cwd=SOLVER_PATH,
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
 
     # Display the stdout and stderr
     print("STDOUT:", result.stdout)
     print("STDERR:", result.stderr)
 
     # Read the output file to get the fill edges
-    fill_edges: List[Tuple[int, int]] = []
+    fill_edges: List[Tuple[str, str]] = []
     with open(os.path.join(SOLVER_PATH, "output.txt"), mode="r", encoding="utf-8") as file:
         lines = file.readlines()
         for line in lines:
@@ -72,7 +79,7 @@ def run_solver(
 
             # Add the edge as a tuple to the fill_edges list
             if len(vertices) == 2:
-                edge: Tuple[int, int] = (int(vertices[0]), int(vertices[1]))
+                edge: Tuple[str, str] = vertices[0], vertices[1]
                 fill_edges.append(edge)
 
     return fill_edges
