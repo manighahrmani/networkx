@@ -8,7 +8,7 @@ import os
 from typing import List, Tuple, Set, Dict, Optional
 import networkx as nx  # type: ignore
 from config import SOLVER_PATH, ROWS, MAX_COLUMNS, CSV_FILENAME
-from utility import write_graph_to_file, save_grid_to_image
+from utility import write_graph_to_file, save_grid_to_image, append_to_file
 from reduction import reduce_grid, generate_grid_graph, get_missing_edges
 
 
@@ -134,15 +134,6 @@ def generate_triangulated_grid_graph(
 
     chords += list(chords_added_in_reduction)
     elimination_ordering += reduction_elimination
-
-    # TODO: Let the caller do this
-    # # Write the input graph to the logs folder
-    # write_graph_to_file(
-    #     num_columns=num_columns,
-    #     num_rows=num_rows,
-    #     graph=reduced_grid,
-    #     folders=["logs"],
-    # )
 
     # This must be here because the solver expects `reduced_graph` to be in the solver folder
     write_graph_to_file(
@@ -408,18 +399,26 @@ def run_experiments() -> None:
         print(f"Running experiment for {ROWS}x{column} grid...")
 
         # Generate the triangulated grid
-        _, _, _, elimination_ordering = generate_triangulated_grid_graph(
+        grid, _, _, elimination_ordering = generate_triangulated_grid_graph(
             num_rows=ROWS, num_columns=column, reduce=True)
 
-        with open(
-            os.path.join("logs", f'{ROWS}x{column}.txt'),
-            mode='a',
-            encoding='utf8'
-        ) as f:
-            f.write("====================\n")
-            for node in elimination_ordering:
-                f.write(f"{node} ")
-            f.write("\n")
+        # Write the input graph to the logs folder
+        write_graph_to_file(
+            num_columns=column,
+            num_rows=ROWS,
+            graph=grid,
+            folders=["logs"],
+        )
+
+        # with open(
+        #     os.path.join("logs", f'{ROWS}x{column}.txt'),
+        #     mode='a',
+        #     encoding='utf8'
+        # ) as f:
+        #     f.write("====================\n")
+        #     for node in elimination_ordering:
+        #         f.write(f"{node} ")
+        #     f.write("\n")
 
         # See TODO in `generate_triangulated_grid_graph` for why this is commented out
         # # Calculate the treewidth and number of added chords
