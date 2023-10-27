@@ -199,7 +199,7 @@ def is_almost_clique(graph: nx.Graph, vertexset: Set[str]) -> bool:
     return False
 
 
-def clique_minimal_separator_decomposition(graph: nx.Graph) -> List[Set[int]]:
+def clique_minimal_separator_decomposition(graph: nx.Graph) -> List[Set[str]]:
     """
     Decompose a graph into a set of atoms using clique minimal separators.
 
@@ -207,8 +207,7 @@ def clique_minimal_separator_decomposition(graph: nx.Graph) -> List[Set[int]]:
     - graph (nx.Graph): The input graph.
 
     Returns:
-    - List[Set[int]]: A list of atoms (maximal connected components)
-    obtained after the decomposition.
+    - List[Set[str]]: A list of atoms (sets of vertices).
     """
     atoms = []
 
@@ -222,7 +221,8 @@ def clique_minimal_separator_decomposition(graph: nx.Graph) -> List[Set[int]]:
             break
     else:
         # If no clique minimal separator is found, the graph itself is an atom
-        return [set(graph.nodes())]
+        nodes: Set[str] = set(graph.nodes())
+        return [nodes]
 
     # Create a copy of the graph for finding connected components
     graph_copy = graph.copy()
@@ -230,6 +230,7 @@ def clique_minimal_separator_decomposition(graph: nx.Graph) -> List[Set[int]]:
 
     for component_nodes in nx.connected_components(graph_copy):
         # Union the component with the separator
+        atom_nodes: Set[str] = set()
         atom_nodes = set(component_nodes) | set(vertexset)
 
         # Create a subgraph induced by the atom nodes
