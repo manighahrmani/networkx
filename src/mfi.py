@@ -275,7 +275,7 @@ def check_fill_in(num_rows: int, num_columns: int, fill_in: int) -> bool:
             return fill_in == 25 + 8 * (num_columns - 5)
 
 
-def maximum_cardinality_search(graph: nx.Graph) -> List[int]:
+def maximum_cardinality_search(graph: nx.Graph) -> List[str]:
     """
     Perform a Maximum Cardinality Search (MCS) on a given graph to find an elimination ordering.
 
@@ -283,7 +283,7 @@ def maximum_cardinality_search(graph: nx.Graph) -> List[int]:
     - graph (networkx.Graph): The input graph, assumed to be chordal.
 
     Returns:
-    - List[int]: A list representing the elimination ordering of the vertices.
+    - List[str]: A list representing the elimination ordering of the vertices.
 
     Note:
     This function assumes that the input graph G is chordal. Using it on a non-chordal graph
@@ -291,9 +291,9 @@ def maximum_cardinality_search(graph: nx.Graph) -> List[int]:
     """
 
     # Initialize
-    visited: Set[int] = set()
-    label: Dict[int, int] = {}
-    order: List[int] = []
+    visited: Set[str] = set()
+    label: Dict[str, int] = {}
+    order: List[str] = []
 
     # Initialize all vertices with label 0
     for node in graph.nodes():
@@ -302,8 +302,8 @@ def maximum_cardinality_search(graph: nx.Graph) -> List[int]:
     # Main loop to find the elimination ordering
     while len(visited) < len(graph):
         # Select a node with maximum label
-        max_label_node = max((node for node in graph.nodes() if node not in visited),
-                             key=lambda node: label[node])
+        max_label_node: str = max((node for node in graph.nodes() if node not in visited),
+                                  key=lambda node: label[node])
 
         visited.add(max_label_node)
         order.append(max_label_node)
