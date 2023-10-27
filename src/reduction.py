@@ -256,7 +256,7 @@ def is_almost_simplicial(graph: nx.Graph, vertex: str) -> bool:
     return is_almost_clique(graph, neighbors)
 
 
-def reduce_graph(graph: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph], List[int]]:
+def reduce_graph(graph: nx.Graph) -> Tuple[Set[Tuple[str, str]], List[nx.Graph], List[str]]:
     """
     Reduce an input graph G to construct a minimum chordal triangulation.
 
@@ -264,43 +264,54 @@ def reduce_graph(graph: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph],
     - graph (nx.Graph): The input graph.
 
     Returns:
-    - Tuple[Set[Tuple[int, int]], List[nx.Graph], List[int]]:
+    - Tuple[Set[Tuple[str, str]], List[nx.Graph], List[str]]:
         - Set of added edges F to make the graph chordal.
-        - List of processed connected components (subgraphs).
-        - List of vertices in the order they were eliminated.
+        - List of processed components (subgraphs).
+        - List of vertices in the order they were eliminated (elimination ordering).
 
     """
     # Initialize
-    atoms = [graph.copy()]
-    processed = []
-    fill_edges = set()
-    elimination_order = []
+    atoms: nx.Graph = [graph.copy()]
+    processed: List[nx.Graph] = []
+    fill_edges: Set[Tuple[str, str]] = set()
+    elimination_order: List[str] = []
 
     while atoms:
         atom = atoms.pop(0)
 
         # Sort vertices by degree (number of neighbors), ascending
-        vertices_by_degree = sorted(
+        vertices_by_degree: List[str] = sorted(
             atom.nodes(), key=lambda v: len(set(atom.neighbors(v))))
 
         for v in vertices_by_degree:
             # for v in list(atom.nodes()):  # Convert to list for stable iteration
             reason_for_elimination: str = ""
-            neighbours_of_v = set(atom.neighbors(v))
+            neighbours_of_v: Set[str] = set(atom.neighbors(v))
 
-            degree_v = len(neighbours_of_v)
+            degree_v: int = len(neighbours_of_v)
 
             for r in range(2, degree_v + 1):  # Subsets with at least 2 vertices
                 for combination in combinations(neighbours_of_v, r):
-                    vertex_set: Set[int] = set(combination)
-                    if is_clique(atom, vertex_set):
+                    vertexset: Set[str] = set(combination)
+                    if is_clique(
+                            graph=atom,
+                            vertexset=vertexset
+                    ):
                         continue
-                    if not is_minimal_separator(atom, vertex_set):
+                    if not is_minimal_separator(
+                        graph=atom,
+                        vertexset=vertexset
+                    ):
                         continue
 
-                    missing_edges = get_missing_edges(atom, vertex_set)
+                    missing_edges: Set[
+                        Tuple[str, str]
+                    ] = get_missing_edges(
+                        graph=atom,
+                        vertexset=vertexset
+                    )
                     if len(missing_edges) == 1:
-                        e = missing_edges.pop()
+                        e: Tuple[str, str] = missing_edges.pop()
                         atom.add_edge(*e)
                         fill_edges.add(e)
                         print(f"\t➕ Added edge {e} in the neighborhood of {v}")
@@ -314,7 +325,10 @@ def reduce_graph(graph: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph],
                 elimination_order.append(v)
                 reason_for_elimination = "simplicial"
             elif is_almost_simplicial(atom, v) and degree_v == nx.node_connectivity(atom):
-                missing_edges = get_missing_edges_in_neighborhood(atom, v)
+                missing_edges = get_missing_edges_in_neighborhood(
+                    graph=atom,
+                    vertex=v
+                )
                 for e in missing_edges:
                     atom.add_edge(*e)
                     fill_edges.add(e)
@@ -325,9 +339,10 @@ def reduce_graph(graph: nx.Graph) -> Tuple[Set[Tuple[int, int]], List[nx.Graph],
             if reason_for_elimination:
                 print(f"❌ Eliminated vertex {v} ({reason_for_elimination})")
 
-        atoms_vertex_set_i: List[Set[int]
-                                 ] = clique_minimal_separator_decomposition(atom)
-        atoms_i = []
+        atoms_vertex_set_i: List[
+            Set[str]
+        ] = clique_minimal_separator_decomposition(atom)
+        atoms_i: List[nx.Graph] = []
 
         for atom_vertex_set_i in atoms_vertex_set_i:
             graph = atom.subgraph(atom_vertex_set_i).copy()
