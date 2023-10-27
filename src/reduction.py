@@ -15,13 +15,10 @@ Includes implementations of the following functions:
 - is_almost_simplicial(graph: nx.Graph, vertex: int) -> bool
 """
 
-from typing import List, Set, Tuple, Dict
+from typing import List, Set, Tuple
 from itertools import combinations
 import unittest
-import os
-import matplotlib.pyplot as plt  # type: ignore
 import networkx as nx  # type: ignore
-from utility import save_grid_to_image
 
 
 def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
