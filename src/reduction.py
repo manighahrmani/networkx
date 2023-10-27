@@ -167,13 +167,13 @@ def is_clique_minimal_separator(graph: nx.Graph, vertexset: Set[str]) -> bool:
     return is_minimal_separator(graph, vertexset) and is_clique(graph, vertexset)
 
 
-def is_simplicial(graph: nx.Graph, vertex: int) -> bool:
+def is_simplicial(graph: nx.Graph, vertex: str) -> bool:
     """
     Check if a vertex is simplicial (its neighborhood induces a clique).
 
     Parameters:
     - graph (nx.Graph): The input graph.
-    - vertex (int): The vertex to check.
+    - vertex (str): The vertex to check.
 
     Returns:
     - bool: True if the vertex is simplicial, otherwise False.
