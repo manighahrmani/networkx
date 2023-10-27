@@ -9,7 +9,7 @@ from typing import List, Tuple, Set, Dict, Optional
 import networkx as nx  # type: ignore
 from config import SOLVER_PATH, ROWS, MAX_COLUMNS, CSV_FILENAME
 from utility import write_graph_to_file, save_grid_to_image
-from reduction import reduce_grid, generate_grid_graph
+from reduction import reduce_grid, generate_grid_graph, get_missing_edges
 
 
 def run_solver(
@@ -326,6 +326,38 @@ def maximum_cardinality_search(graph: nx.Graph) -> List[str]:
                 label[neighbor] += 1
 
     return order[::-1]  # Reverse to get elimination ordering
+
+
+def check_elimination_ordering(
+        graph: nx.Graph,
+        ordering: List[str]
+) -> bool:
+    """
+    Check if the given ordering is a valid elimination ordering of the given graph.
+
+    Parameters:
+    - graph (nx.Graph): The input graph.
+    - ordering (List[str]): The ordering to check.
+
+    Returns:
+    - bool: True if the ordering is valid (triangulates the graph), False otherwise.
+
+    """
+    graph_copy: nx.Graph = graph.copy()
+    for node in ordering:
+        # Get the madj of the node
+        madj: Set[str] = compute_madj(node, ordering, graph)
+
+        madj_missing_edges: Set[Tuple[str, str]] = get_missing_edges(
+            graph=graph,
+            vertexset=madj
+        )
+
+        graph_copy.add_edges_from(madj_missing_edges)
+
+    if not nx.is_chordal(graph_copy):
+        return False
+    return True
 
 
 def run_experiments() -> None:
