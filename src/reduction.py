@@ -178,7 +178,7 @@ def is_simplicial(graph: nx.Graph, vertex: str) -> bool:
     Returns:
     - bool: True if the vertex is simplicial, otherwise False.
     """
-    neighbors = set(graph.neighbors(vertex))
+    neighbors: Set[str] = set(graph.neighbors(vertex))
     return is_clique(graph, neighbors)
 
 
@@ -225,16 +225,15 @@ def clique_minimal_separator_decomposition(graph: nx.Graph) -> List[Set[str]]:
         return [nodes]
 
     # Create a copy of the graph for finding connected components
-    graph_copy = graph.copy()
+    graph_copy: nx.Graph = graph.copy()
     graph_copy.remove_nodes_from(vertexset)
 
     for component_nodes in nx.connected_components(graph_copy):
         # Union the component with the separator
-        atom_nodes: Set[str] = set()
-        atom_nodes = set(component_nodes) | set(vertexset)
+        atom_nodes: Set[str] = set(component_nodes) | set(vertexset)
 
         # Create a subgraph induced by the atom nodes
-        subgraph = graph.subgraph(atom_nodes).copy()
+        subgraph: nx.Graph = graph.subgraph(atom_nodes).copy()
 
         # Recursively decompose the subgraphs
         atoms.extend(clique_minimal_separator_decomposition(subgraph))
@@ -242,18 +241,18 @@ def clique_minimal_separator_decomposition(graph: nx.Graph) -> List[Set[str]]:
     return atoms
 
 
-def is_almost_simplicial(graph: nx.Graph, vertex: int) -> bool:
+def is_almost_simplicial(graph: nx.Graph, vertex: str) -> bool:
     """
     Check if a vertex is almost simplicial (its neighborhood is almost a clique).
 
     Parameters:
     - graph (nx.Graph): The input graph.
-    - vertex (int): The vertex to check.
+    - vertex (str): The vertex to check.
 
     Returns:
     - bool: True if the vertex is almost simplicial, otherwise False.
     """
-    neighbors = set(graph.neighbors(vertex))
+    neighbors: Set[str] = set(graph.neighbors(vertex))
     return is_almost_clique(graph, neighbors)
 
 
