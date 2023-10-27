@@ -400,94 +400,117 @@ class TestReduction(unittest.TestCase):
     Unit tests for the reduction module.
     """
 
-    def setUp(self):
-        self.graph = nx.Graph()
-        self.graph.add_edges_from([(1, 2), (2, 3), (3, 1), (3, 4)])
-
-    def test_generate_grid_graph(self):
+    def test_generate_grid_graph(self) -> None:
         """
         Test the generation of a grid graph.
         """
         graph = generate_grid_graph(2, 2)
-        self.assertEqual(len(graph.nodes), 4)
-        self.assertEqual(len(graph.edges), 4)
 
-    def test_is_clique(self):
+        # Check if the nodes are labeled correctly
+        desired_node_labels: Set[str] = {
+            "10101", "10102", "10201", "10202"
+        }
+        self.assertEqual(set(graph.nodes), desired_node_labels)
+
+        desired_edges: Set[Tuple[str, str]] = {
+            ("10101", "10102"),
+            ("10101", "10201"),
+            ("10102", "10202"),
+            ("10201", "10202")
+        }
+        self.assertEqual(set(graph.edges), desired_edges)
+
+    def test_is_clique(self) -> None:
         """
         Test the clique check function.
         """
-        self.assertTrue(is_clique(self.graph, {1, 2, 3}))
-        self.assertFalse(is_clique(self.graph, {1, 2, 4}))
+        graph: nx.Graph = generate_grid_graph(2, 2)
+        vertices: Set[str] = {"10101", "10102", "10201"}
+        self.assertFalse(is_clique(graph, vertices))
+        graph.add_edge("10102", "10201")
+        self.assertTrue(is_clique(graph, vertices))
 
-    def test_is_separator(self):
+    def test_is_separator(self) -> None:
         """
         Test the separator check function.
         """
-        self.assertTrue(is_separator(self.graph, {3}))
-        self.assertFalse(is_separator(self.graph, {1}))
+        graph: nx.Graph = generate_grid_graph(2, 2)
+        vertices: Set[str] = {"10102", "10201"}
+        self.assertTrue(is_separator(graph, vertices))
+        graph.add_edge("10101", "10202")
+        self.assertFalse(is_separator(graph, vertices))
 
-    def test_is_minimal_separator(self):
+    def test_is_minimal_separator(self) -> None:
         """
         Test the minimal separator check function.
         """
-        circle = nx.Graph()
-        circle.add_edges_from([(1, 2), (2, 3), (3, 4), (4, 1)])
-        self.assertTrue(is_minimal_separator(circle, {1, 3}))
-        circle.add_edge(2, 4)
-        self.assertFalse(is_minimal_separator(circle, {1, 3}))
+        graph: nx.Graph = generate_grid_graph(3, 3)
+        # Not a minimal separator
+        vertices: Set[str] = {"10102", "10202", "10302", "10201"}
+        self.assertFalse(is_minimal_separator(graph, vertices))
+        vertices = {"10102", "10202", "10302"}
+        self.assertTrue(is_minimal_separator(graph, vertices))
+        # Not a separator
+        vertices = {"10102", "10202"}
+        self.assertFalse(is_minimal_separator(graph, vertices))
 
-    def test_is_clique_minimal_separator(self):
+    def test_is_clique_minimal_separator(self) -> None:
         """
         Test the clique minimal separator check function.
         """
-        circle = nx.Graph()
-        circle.add_edges_from([(1, 2), (2, 3), (3, 4), (4, 1)])
-        self.assertFalse(is_clique_minimal_separator(circle, {1, 3}))
-        self.assertFalse(is_clique_minimal_separator(circle, {1}))
-        circle.add_edge(1, 3)
-        self.assertTrue(is_clique_minimal_separator(circle, {1, 3}))
+        graph: nx.Graph = generate_grid_graph(3, 3)
+        # Not minimal and not a clique
+        vertices: Set[str] = {"10102", "10202", "10302", "10201"}
+        self.assertFalse(is_clique_minimal_separator(graph, vertices))
+        # minimal separator but not a clique
+        vertices = {"10102", "10202", "10302"}
+        self.assertFalse(is_clique_minimal_separator(graph, vertices))
+        # Add edges to make it a clique
+        graph.add_edge("10102", "10302")
+        self.assertTrue(is_clique_minimal_separator(graph, vertices))
 
-    def test_is_simplicial(self):
+    def test_is_simplicial(self) -> None:
         """
         Test the simplicial check function.
         """
-        self.assertTrue(is_simplicial(self.graph, 1))
-        self.assertFalse(is_simplicial(self.graph, 3))
+        graph: nx.Graph = generate_grid_graph(3, 3)
+        self.assertFalse(is_simplicial(graph, "10101"))
+        graph.add_edge("10102", "10201")
+        self.assertTrue(is_simplicial(graph, "10101"))
 
-    def test_is_almost_clique(self):
+    def test_is_almost_clique(self) -> None:
         """
         Test the almost clique check function.
         """
-        # Create a new graph that is not almost a clique
-        circle = nx.Graph()
-        circle.add_edges_from([(1, 2), (2, 3), (3, 4), (4, 1)])
-        self.assertFalse(is_almost_clique(circle, {1, 2, 3, 4}))
-        circle.add_edge(1, 3)
-        self.assertTrue(is_almost_clique(self.graph, {1, 2, 3, 4}))
+        graph: nx.Graph = generate_grid_graph(3, 3)
+        # Not an almost clique
+        vertices: Set[str] = {"10101", "10202", "10303"}
+        self.assertFalse(is_almost_clique(graph, vertices))
+        graph.add_edge("10101", "10202")
+        self.assertTrue(is_almost_clique(graph, vertices))
 
-    def test_get_missing_edges_in_neighborhood(self):
+    def test_get_missing_edges_in_neighborhood(self) -> None:
         """
         Test the get_missing_edges_in_neighborhood function.
         """
-        circle = nx.Graph()
-        circle.add_edges_from([(1, 2), (2, 3), (3, 4), (4, 1)])
-        missing_edges = get_missing_edges_in_neighborhood(circle, 1)
-        self.assertEqual(missing_edges, {(2, 4)})
-
-        circle.add_edge(1, 3)
-        missing_edges = get_missing_edges_in_neighborhood(circle, 2)
+        graph: nx.Graph = generate_grid_graph(3, 3)
+        missing_edges = get_missing_edges_in_neighborhood(graph, "10101")
+        self.assertEqual(missing_edges, {("10201", "10102")})
+        graph.add_edge("10201", "10102")
+        missing_edges = get_missing_edges_in_neighborhood(graph, "10101")
         self.assertEqual(missing_edges, set())
 
-    def test_get_missing_edges(self):
+    def test_get_missing_edges(self) -> None:
         """
         Test the get_missing_edges function.
         """
-        circle = nx.Graph()
-        circle.add_edges_from([(1, 2), (2, 3), (3, 4), (4, 1)])
-        missing_edges = get_missing_edges(circle, {1, 2, 3})
-        self.assertEqual(missing_edges, {(1, 3)})
-        missing_edges = get_missing_edges(circle, {1, 2, 3, 4})
-        self.assertEqual(missing_edges, {(1, 3), (2, 4)})
+        graph: nx.Graph = generate_grid_graph(2, 2)
+        vertices: Set[str] = {"10101", "10102", "10201"}
+        missing_edges = get_missing_edges(graph, vertices)
+        self.assertEqual(missing_edges, {("10102", "10201")})
+        graph.add_edge("10102", "10201")
+        missing_edges = get_missing_edges(graph, vertices)
+        self.assertEqual(missing_edges, set())
 
 
 if __name__ == "__main__":
