@@ -72,10 +72,10 @@ def run_solver(
     # Read the output file to get the fill edges
     fill_edges: List[Tuple[str, str]] = []
     with open(os.path.join(SOLVER_PATH, "output.txt"), mode="r", encoding="utf-8") as file:
-        lines = file.readlines()
+        lines: List[str] = file.readlines()
         for line in lines:
             # Remove any leading/trailing white spaces and split the vertices
-            vertices = line.strip().split(" ")
+            vertices: List[str] = line.strip().split(" ")
 
             # Add the edge as a tuple to the fill_edges list
             if len(vertices) == 2:
