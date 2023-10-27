@@ -184,6 +184,12 @@ def generate_triangulated_grid_graph(
     ):
         raise RuntimeError("The fill-in does not match the expected formula!")
 
+    if not check_elimination_ordering(
+        graph=grid_triangulated,
+        ordering=elimination_ordering
+    ):
+        raise RuntimeError("The elimination ordering is not valid!")
+
     # TODO: Let the caller do this
     # # Find all cliques
     # cliques: List[List[int]] = list(nx.find_cliques(grid_triangulated))
@@ -358,6 +364,29 @@ def check_elimination_ordering(
     if not nx.is_chordal(graph_copy):
         return False
     return True
+
+
+def get_all_maximum_cliques(graph: nx.Graph) -> List[List[str]]:
+    """
+    Get all maximum cliques of a given graph.
+
+    Parameters:
+    - graph (nx.Graph): The input graph.
+
+    Returns:
+    - List[List[str]]: A list of all maximum cliques of the graph.
+    """
+    # Find all cliques
+    cliques: List[List[str]] = list(nx.find_cliques(graph))
+
+    # Find the maximum clique size
+    max_clique_size: int = max([len(clique) for clique in cliques])
+
+    # Find all cliques of the maximum size
+    maximum_cliques: List[List[str]] = [
+        clique for clique in cliques if len(clique) == max_clique_size]
+
+    return maximum_cliques
 
 
 def run_experiments() -> None:
