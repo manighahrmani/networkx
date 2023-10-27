@@ -68,13 +68,13 @@ def is_clique(graph: nx.Graph, vertexset: Set[int]) -> bool:
     return len(missing_edges) == 0
 
 
-def is_separator(graph: nx.Graph, vertexset: Set[int]) -> bool:
+def is_separator(graph: nx.Graph, vertexset: Set[str]) -> bool:
     """
     Check if removing a set of vertices from the graph disconnects it.
 
     Parameters:
     - graph (nx.Graph): The input graph.
-    - vertexset (Set[int]): The set of vertices to remove.
+    - vertexset (Set[str]): The set of vertices to check.
 
     Returns:
     - bool: True if the vertex set disconnects the graph, otherwise False.
@@ -153,13 +153,13 @@ def get_missing_edges(graph: nx.Graph, vertexset: Set[str]) -> Set[Tuple[str, st
     return missing_edges
 
 
-def is_clique_minimal_separator(graph: nx.Graph, vertexset: Set[int]) -> bool:
+def is_clique_minimal_separator(graph: nx.Graph, vertexset: Set[str]) -> bool:
     """
     Check if a vertex set is both a minimal separator and a clique.
 
     Parameters:
     - graph (nx.Graph): The input graph.
-    - vertexset (Set[int]): The set of vertices to check.
+    - vertexset (Set[str]): The set of vertices to check.
 
     Returns:
     - bool: True if the vertex set is a clique minimal separator, otherwise False.
