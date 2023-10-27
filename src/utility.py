@@ -40,7 +40,7 @@ def save_grid_to_image(
     - grid (nx.Graph): The grid graph.
     - path_to_graph_image (List[str]): The list of folders where the image will be saved.
     - filename_end (str): The name of the image file (default: "grid")
-    - node_colors (Optional[List[str]]): The list of colors for the nodes (default: None)
+    - node_colors (Optional[List[str]]): The list of colors for the nodes defined in order of `.nodes()`.
 
     Returns:
     - None
@@ -50,7 +50,10 @@ def save_grid_to_image(
     The image is saved in the specified folders.
     """
     if node_colors is None:
-        node_colors = ['lightblue'] * len(grid.nodes())
+        node_to_color: Dict[str, str] = {}
+        for node in grid.nodes():
+            node_to_color[node] = 'red'
+        node_colors = [node_to_color[node] for node in grid.nodes()]
 
     for node in grid.nodes():
         if not isinstance(node, str):
