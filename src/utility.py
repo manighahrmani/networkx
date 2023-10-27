@@ -124,16 +124,18 @@ def write_graph_to_file(
 
 
 def append_to_file(
+        num_rows: int,
+        num_columns: int,
         folders: List[str],
-        filename: str,
         content: str,
 ) -> None:
     """
     Append the content to the specified file.
 
     Parameters:
+    - num_rows (int): The number of rows in the grid.
+    - num_columns (int): The number of columns in the grid.
     - folders (List[str]): The list of folders where the file will be saved.
-    - filename (str): The name of the file.
     - content (str): The content to append to the file.
 
     The function appends the content to the specified file.
@@ -141,6 +143,8 @@ def append_to_file(
     """
     # Join the folders to form the path
     folder_path = os.path.join(*folders)
+
+    filename: str = f'{num_rows}x{num_columns}.txt'
 
     with open(
         os.path.join(folder_path, filename),

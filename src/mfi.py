@@ -117,12 +117,6 @@ def generate_triangulated_grid_graph(
     grid: nx.Graph = generate_grid_graph(num_rows, num_columns)
     elimination_ordering: List[str] = []
 
-    # TODO: Let the caller do this
-    # path_to_graph_image: List[str] = ["images", "original"]
-    # # Get node positions for the original graph
-    # # This is so that the vertices of grid graph and triangulated graph have the same positions
-    # save_grid_to_image(num_rows, num_columns, grid, path_to_graph_image)
-
     reduction_elimination: List[str] = []
     reduced_grid: nx.Graph = grid.copy()
     chords_added_in_reduction: Set[Tuple[str, str]] = set()
@@ -180,37 +174,6 @@ def generate_triangulated_grid_graph(
         ordering=elimination_ordering
     ):
         raise RuntimeError("The elimination ordering is not valid!")
-
-    # TODO: Let the caller do this
-    # # Find the maximum clique size
-    # maximum_cliques: List[List[int]] = get_all_maximum_cliques(grid_triangulated)
-
-    # # Write the chords and maximum cliques to the text file in logs
-    # with open(
-    #     os.path.join("logs", f'{num_rows}x{num_columns}.txt'),
-    #     mode='a',
-    #     encoding='utf8'
-    # ) as f:
-    #     f.write("====================\n")
-    #     for chord in chords:
-    #         f.write(f"{chord[0]} {chord[1]}\n")
-    #     f.write("====================\n")
-    #     for clique in maximum_cliques:
-    #         for node in clique:
-    #             f.write(f"{node} ")
-    #         f.write("\n")
-
-    # TODO: Let the caller do this
-    # path_to_graph_image = ["images", "triangulated"]
-    # # Get node positions for the original graph
-    # # This is so that the vertices of grid graph and triangulated graph have the same positions
-    # save_grid_to_image(
-    #     num_columns=num_columns,
-    #     num_rows=num_rows,
-    #     grid=grid_triangulated,
-    #     path_to_graph_image=path_to_graph_image,
-    #     filename_end="triangulated"
-    # )
 
     return grid, chords, grid_triangulated, elimination_ordering
 
@@ -399,43 +362,86 @@ def run_experiments() -> None:
         print(f"Running experiment for {ROWS}x{column} grid...")
 
         # Generate the triangulated grid
-        grid, _, _, elimination_ordering = generate_triangulated_grid_graph(
+        grid, chords, triangulated_grid, elimination_ordering = generate_triangulated_grid_graph(
             num_rows=ROWS, num_columns=column, reduce=True)
 
-        # Write the input graph to the logs folder
+        # Write the input graph to the input/logs folder
         write_graph_to_file(
             num_columns=column,
             num_rows=ROWS,
             graph=grid,
-            folders=["logs"],
+            folders=["input", "logs"],
+        )
+        # Save the grid to an input/images folder
+        save_grid_to_image(
+            num_columns=column,
+            num_rows=ROWS,
+            grid=grid,
+            path_to_graph_image=["input", "images"],
         )
 
-        # with open(
-        #     os.path.join("logs", f'{ROWS}x{column}.txt'),
-        #     mode='a',
-        #     encoding='utf8'
-        # ) as f:
-        #     f.write("====================\n")
-        #     for node in elimination_ordering:
-        #         f.write(f"{node} ")
-        #     f.write("\n")
+        # First write the grid to the output/logs folder
+        write_graph_to_file(
+            num_columns=column,
+            num_rows=ROWS,
+            graph=triangulated_grid,
+            folders=["output", "logs"],
+        )
+        # Then append the chords to the output/logs folder
+        chords_str: str = "=" * 20 + "\n"
+        chords_str += "\n".join(
+            [f"{chord[0]} {chord[1]}" for chord in chords])
+        append_to_file(
+            content=chords_str,
+            folders=["output", "logs"],
+            num_columns=column,
+            num_rows=ROWS,
+        )
+        # Then append the maximum cliques to the output/logs folder
+        maximum_cliques: List[List[str]] = get_all_maximum_cliques(
+            graph=triangulated_grid
+        )
+        maximum_cliques_str: str = "=" * 20 + "\n"
+        for maximum_clique in maximum_cliques:
+            maximum_cliques_str += " ".join(maximum_clique) + "\n"
+        append_to_file(
+            content=maximum_cliques_str,
+            folders=["output", "logs"],
+            num_columns=column,
+            num_rows=ROWS,
+        )
+        # Lastly, append the elimination ordering to the output/logs folder
+        elimination_ordering_str: str = "=" * 20 + "\n"
+        elimination_ordering_str += " ".join(elimination_ordering) + "\n"
+        append_to_file(
+            content=elimination_ordering_str,
+            folders=["output", "logs"],
+            num_columns=column,
+            num_rows=ROWS,
+        )
+        # Save the triangulated grid to an output/images folder
+        save_grid_to_image(
+            num_columns=column,
+            num_rows=ROWS,
+            grid=triangulated_grid,
+            path_to_graph_image=["output", "images"],
+        )
 
-        # See TODO in `generate_triangulated_grid_graph` for why this is commented out
-        # # Calculate the treewidth and number of added chords
-        # treewidth = len(maximum_cliques[0]) - 1
-        # num_added_chords = len(chords)
+        # Calculate the treewidth and number of added chords
+        treewidth: int = len(maximum_cliques[0]) - 1
+        num_added_chords: int = len(chords)
 
-        # # Update the existing data if needed
-        # if column not in existing_data or existing_data[column] != (num_added_chords, treewidth):
-        #     existing_data[column] = (num_added_chords, treewidth)
+        # Update the existing data if needed
+        if column not in existing_data or existing_data[column] != (num_added_chords, treewidth):
+            existing_data[column] = (num_added_chords, treewidth)
 
-    # # Write the updated data back to the CSV file
-    # with open(CSV_FILENAME, mode='w', newline='', encoding="utf-8") as csvfile:
-    #     csv_writer = csv.writer(csvfile)
-    #     csv_writer.writerow(
-    #         ['Columns', 'Rows', 'Num_Added_Chords', 'Treewidth'])
-    #     for column, (num_added_chords, treewidth) in sorted(existing_data.items()):
-    #         csv_writer.writerow([column, ROWS, num_added_chords, treewidth])
+    # Write the updated data back to the CSV file
+    with open(CSV_FILENAME, mode='w', newline='', encoding="utf-8") as csvfile:
+        csv_writer = csv.writer(csvfile)
+        csv_writer.writerow(
+            ['Columns', 'Rows', 'Num_Added_Chords', 'Treewidth'])
+        for column, (num_added_chords, treewidth) in sorted(existing_data.items()):
+            csv_writer.writerow([column, ROWS, num_added_chords, treewidth])
 
 
 run_experiments()
