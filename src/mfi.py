@@ -390,7 +390,7 @@ def run_experiments() -> None:
         # Then append the chords to the output/logs folder
         chords_str: str = "=" * 20 + "\n"
         chords_str += "\n".join(
-            [f"{chord[0]} {chord[1]}" for chord in chords])
+            [f"{chord[0]} {chord[1]}" for chord in chords]) + "\n"
         append_to_file(
             content=chords_str,
             folders=["output", "logs"],
