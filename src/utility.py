@@ -3,6 +3,8 @@ Utility Module
 --------------
 This module contains utility functions for graph analysis.
 It includes the following functions:
+- save_grid_to_image
+- write_graph_to_file
 - get_vertex_degree
 - get_missing_edges_in_neighborhood
 - is_simplicial
@@ -14,12 +16,11 @@ It includes the following functions:
 - is_separator
 """
 
-from typing import List, Union, Tuple, Dict
+from typing import List, Union, Tuple, Dict, Optional
 import os
 import unittest
 import matplotlib.pyplot as plt  # type: ignore
 import networkx as nx  # type: ignore
-from config import SOLVER_PATH
 
 
 def save_grid_to_image(
@@ -28,7 +29,8 @@ def save_grid_to_image(
         grid: nx.Graph,
         path_to_graph_image: List[str],
         filename_end: str = "grid",
-) -> Dict[str, Tuple[int, int]]:
+        node_colors: Optional[List[str]] = None,
+) -> None:
     """
     Save the grid graph as an image.
 
@@ -38,91 +40,59 @@ def save_grid_to_image(
     - grid (nx.Graph): The grid graph.
     - path_to_graph_image (List[str]): The list of folders where the image will be saved.
     - filename_end (str): The name of the image file (default: "grid")
+    - node_colors (Optional[List[str]]): The list of colors for the nodes defined in order of `.nodes()`.
 
     Returns:
-    - Dict[str, Tuple[int, int]]: The positions of the nodes in the grid.
+    - None
 
     The function saves the grid graph as an image.
-    The name of the image is in the format '{num_rows}x{num_columns}_grid.png'.
+    The name of the image is in the format '{num_rows}x{num_columns}_{filename_end}.png'.
     The image is saved in the specified folders.
     """
+    if node_colors is None:
+        node_to_color: Dict[str, str] = {}
+        for node in grid.nodes():
+            node_to_color[node] = 'red'
+        node_colors = [node_to_color[node] for node in grid.nodes()]
+
+    for node in grid.nodes():
+        if not isinstance(node, str):
+            raise TypeError("Nodes must be strings")
+        elif len(node) != 5 or node[0] != '1' or not node[1:].isnumeric():
+            raise ValueError(
+                "Nodes must be in the format '1nnmm'\
+                      where n is the row number and m is the column number")
+
     # Create a dictionary of positions for the nodes
-    # The keys are the nodes and the values are the positions (Tuple[int, int])
-    # 10101 is the top left corner and 10n0m is the bottom right corner
-    # where n is the number of rows and m is the number of columns
     pos: Dict[str, Tuple[int, int]] = {}
     for node in grid.nodes():
-        node_as_str: str = str(node)
-        row = int(node_as_str[1:3])
-        column = int(node_as_str[3:5])
+        row = int(node[1:3])
+        column = int(node[3:5])
         pos[node] = (column - 1, -(row - 1))
-
-    # pos = {node: (int(node[3:5]) - 1, -(int(node[1:3]) - 1))
-    #        for node in grid.nodes()}
 
     # Plot and save the original graph using the positions
     plt.figure(figsize=(8, 6))
-    nx.draw(grid, pos, with_labels=True, font_weight='bold')
+
+    nx.draw(
+        G=grid,
+        pos=pos,
+        with_labels=True,
+        font_weight='bold',
+        node_color=node_colors,
+    )
+
     filename = f'{num_rows}x{num_columns}_{filename_end}.png'
     path = os.path.join(*path_to_graph_image, filename)
     plt.savefig(path)
     plt.close()
-    return pos
 
 
-def save_grid_to_image_colored(
+def write_graph_to_file(
         num_rows: int,
         num_columns: int,
-        pos: Dict[str, Tuple[int, int]],
-        grid: nx.Graph,
-        node_colors: List[str],
-        path_to_graph_image: List[str]
-) -> None:
-    """
-    Save the triangulated grid graph as a colored image.
-
-    Parameters:
-    - num_rows (int): The number of rows in the grid.
-    - num_columns (int): The number of columns in the grid.
-    - pos (Dict[str, Tuple[int, int]]): The positions of the nodes in the grid.
-    - grid (nx.Graph): The triangulated grid graph.
-    - node_colors (List[str]): The colors of the nodes.
-    - path_to_graph_image (List[str]): The path to the folder where the image should be saved.
-
-    The function saves the triangulated grid graph as a colored image.
-    The name of the image is in the format '{num_rows}x{num_columns}_triangulated.png'.
-    The image is saved in the 'images/triangulated' folder.
-    """
-    plt.figure(figsize=(8, 6))
-    nx.draw(grid, pos, with_labels=True,
-            font_weight='bold', node_color=node_colors)
-    filename = f'{num_rows}x{num_columns}_triangulated.png'
-    path = os.path.join(*path_to_graph_image, filename)
-    plt.savefig(path)
-    plt.close()
-
-
-def write_input_graph_to_solver_folder(graph: nx.Graph) -> None:
-    """
-    Write the edges of the input graph to a solver folder.
-
-    Parameters:
-    - relabeled_graph (nx.Graph): The graph with relabeled vertices.
-
-    The function writes the edges of the relabeled graph to a text file.
-    The file is saved in the solver path.
-    Each line in the file represents an edge and contains two vertex labels separated by a space.
-    """
-    output_path = os.path.join(SOLVER_PATH, "graph.txt")
-    with open(output_path, mode='w', encoding='utf8') as f:
-        for edge in graph.edges():
-            f.write(f"{edge[0]} {edge[1]}\n")
-
-
-def write_input_graph_to_file(
-        num_rows: int,
-        num_columns: int,
-        graph: nx.Graph, folders: List[str]
+        graph: nx.Graph,
+        folders: List[str],
+        filename: str = "",
 ) -> None:
     """
     Write the edges of the input graph to a text file.
@@ -132,22 +102,59 @@ def write_input_graph_to_file(
     - num_columns (int): The number of columns in the grid.
     - graph (nx.Graph): The graph with relabeled vertices.
     - folders (List[str]): The list of folders where the file will be saved.
+    - filename (str): The name of the file (default: "")
 
     The function writes the edges of the relabeled graph to a text file.
-    The name of the file is in the format '{num_rows}x{num_columns}.txt'.
     The file is saved in the specified folders.
     Each line in the file represents an edge and contains two vertex labels separated by a space.
+    If no filename is provided, the filename is in the format '{num_rows}x{num_columns}.txt'.
+    Else, the filename is the provided filename.
     """
     # Join the folders to form the path
     folder_path = os.path.join(*folders)
 
+    # Use the number of rows and columns to form the filename if none is provided
+    if filename == "":
+        filename = f'{num_rows}x{num_columns}.txt'
+
     with open(
-        os.path.join(folder_path, f'{num_rows}x{num_columns}.txt'),
+        os.path.join(folder_path, filename),
         mode='w',
         encoding='utf8'
     ) as f:
         for edge in graph.edges():
             f.write(f"{edge[0]} {edge[1]}\n")
+
+
+def append_to_file(
+        num_rows: int,
+        num_columns: int,
+        folders: List[str],
+        content: str,
+) -> None:
+    """
+    Append the content to the specified file.
+
+    Parameters:
+    - num_rows (int): The number of rows in the grid.
+    - num_columns (int): The number of columns in the grid.
+    - folders (List[str]): The list of folders where the file will be saved.
+    - content (str): The content to append to the file.
+
+    The function appends the content to the specified file.
+    The file is saved in the specified folders.
+    """
+    # Join the folders to form the path
+    folder_path = os.path.join(*folders)
+
+    filename: str = f'{num_rows}x{num_columns}.txt'
+
+    with open(
+        os.path.join(folder_path, filename),
+        mode='a',
+        encoding='utf8'
+    ) as f:
+        f.write(content)
 
 
 def get_vertex_degree(graph: nx.Graph, vertex: Union[int, Tuple[int, int]]) -> int:
