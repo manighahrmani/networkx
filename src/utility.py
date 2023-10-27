@@ -3,6 +3,8 @@ Utility Module
 --------------
 This module contains utility functions for graph analysis.
 It includes the following functions:
+- save_grid_to_image
+- write_graph_to_file
 - get_vertex_degree
 - get_missing_edges_in_neighborhood
 - is_simplicial
@@ -19,7 +21,6 @@ import os
 import unittest
 import matplotlib.pyplot as plt  # type: ignore
 import networkx as nx  # type: ignore
-from config import SOLVER_PATH
 
 
 def save_grid_to_image(
