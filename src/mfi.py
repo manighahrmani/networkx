@@ -191,15 +191,8 @@ def generate_triangulated_grid_graph(
         raise RuntimeError("The elimination ordering is not valid!")
 
     # TODO: Let the caller do this
-    # # Find all cliques
-    # cliques: List[List[int]] = list(nx.find_cliques(grid_triangulated))
-
     # # Find the maximum clique size
-    # max_clique_size = max([len(clique) for clique in cliques])
-
-    # # Find all cliques of the maximum size
-    # maximum_cliques: List[List[int]] = [
-    #     clique for clique in cliques if len(clique) == max_clique_size]
+    # maximum_cliques: List[List[int]] = get_all_maximum_cliques(grid_triangulated)
 
     # # Write the chords and maximum cliques to the text file in logs
     # with open(
