@@ -89,7 +89,7 @@ def generate_triangulated_grid_graph(
         num_rows: int,
         num_columns: int,
         reduce: bool = True,
-) -> Tuple[nx.Graph, List[Tuple[str, str]], nx.Graph]:
+) -> Tuple[nx.Graph, List[Tuple[str, str]], nx.Graph, List[str]]:
     """
     Generate a {num_rows}x{num_columns} grid graph and triangulates it.
     Given that `reduce` is True, reduces the grid graph before triangulation.
@@ -100,11 +100,11 @@ def generate_triangulated_grid_graph(
     - reduce (bool): Whether to reduce the grid graph before triangulation.
 
     Returns:
-    - Tuple[nx.Graph, List[Tuple[int, int]], nx.Graph, List[List[int]]]:
+    - Tuple[nx.Graph, List[Tuple[str, str]], nx.Graph, List[str]]:
         * nx.Graph: The original grid graph.
-        * List[Tuple[int, int]]: The fill edges added to triangulate the graph.
+        * List[Tuple[str, str]]: The fill edges added to triangulate the graph.
         * nx.Graph: The triangulated graph.
-        * List[List[int]]: The maximum cliques in the triangulated graph.
+        * List[str]: The elimination ordering of the vertices.
 
     Raises:
     - RuntimeError: If the graph is not triangulated.
@@ -115,6 +115,7 @@ def generate_triangulated_grid_graph(
     os.makedirs(os.path.join('images', 'triangulated'), exist_ok=True)
 
     grid: nx.Graph = generate_grid_graph(num_rows, num_columns)
+    elimination_ordering: List[str] = []
 
     # TODO: Let the caller do this
     # path_to_graph_image: List[str] = ["images", "original"]
@@ -122,24 +123,20 @@ def generate_triangulated_grid_graph(
     # # This is so that the vertices of grid graph and triangulated graph have the same positions
     # save_grid_to_image(num_rows, num_columns, grid, path_to_graph_image)
 
+    reduction_elimination: List[str] = []
+    reduced_grid: nx.Graph = grid.copy()
+    chords_added_in_reduction: Set[Tuple[str, str]] = set()
     chords: List[Tuple[str, str]] = []
     if reduce:
-        chords_added_in_reduction: Set[Tuple[str, str]] = set()
-        chords_added_in_reduction, _, _, _ = reduce_grid(
+        chords_added_in_reduction, reduced_grid, reduction_elimination, _ = reduce_grid(
             graph=grid
         )
 
     chords += list(chords_added_in_reduction)
+    elimination_ordering += reduction_elimination
 
     # TODO: Let the caller do this
-    # # Write the input graph to the solver folder and to the logs folder
-    # write_graph_to_file(
-    #     num_rows=num_rows,
-    #     num_columns=num_columns,
-    #     graph=reduced_grid,
-    #     folders=[SOLVER_PATH],
-    #     filename="graph"
-    # )
+    # # Write the input graph to the logs folder
     # write_graph_to_file(
     #     num_columns=num_columns,
     #     num_rows=num_rows,
@@ -147,13 +144,28 @@ def generate_triangulated_grid_graph(
     #     folders=["logs"],
     # )
 
+    # This must be here because the solver expects `reduced_graph` to be in the solver folder
+    write_graph_to_file(
+        num_rows=num_rows,
+        num_columns=num_columns,
+        graph=reduced_grid,
+        folders=[SOLVER_PATH],
+        filename="graph"
+    )
+
     chords_after_reduction: List[
         Tuple[str, str]
     ] = run_solver(
         num_columns=num_columns,
         num_rows=num_rows
     )
+    triangulated_reduced_grid: nx.Graph = reduced_grid.copy()
+    triangulated_reduced_grid.add_edges_from(chords_after_reduction)
+    after_reduction_elimination: List[str] = maximum_cardinality_search(
+        graph=triangulated_reduced_grid
+    )
 
+    elimination_ordering += after_reduction_elimination
     chords += chords_after_reduction
 
     # Create the triangulated graph
@@ -210,7 +222,7 @@ def generate_triangulated_grid_graph(
     #     filename_end="triangulated"
     # )
 
-    return grid, chords, grid_triangulated
+    return grid, chords, grid_triangulated, elimination_ordering
 
 
 def compute_madj(
@@ -321,18 +333,14 @@ def run_experiments() -> None:
     Run experiments to generate triangulated grid graphs and collect data.
 
     Parameters:
-    - ROWS (int): The constant number of rows for the grid.
-    - MAX_COLUMNS (int): The maximum number of columns to iterate through.
+    - None
 
     Returns:
     - None
 
-    This function iterates through a range of columns from `ROWS` to `MAX_COLUMNS`,
-    generating triangulated grid graphs for each. It calculates the treewidth and
-    number of added chords for each grid, saving these data points to a CSV file.
-    Additionally, it writes the added chords and largest clique to a text file for each grid.
+    # TODO: Update this docstring
     """
-    existing_data = {}
+    existing_data: Dict[int, Tuple[int, int]] = {}
 
     # Read existing data from the CSV file if it exists
     if os.path.exists(CSV_FILENAME):
@@ -346,7 +354,7 @@ def run_experiments() -> None:
         print(f"Running experiment for {ROWS}x{column} grid...")
 
         # Generate the triangulated grid
-        _, chords, triangulated_grid, maximum_cliques = generate_triangulated_grid_graph(
+        _, chords, triangulated_grid = generate_triangulated_grid_graph(
             num_rows=ROWS, num_columns=column, reduce=True)
 
         # Calculate the elimination ordering
