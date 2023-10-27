@@ -85,13 +85,13 @@ def is_separator(graph: nx.Graph, vertexset: Set[str]) -> bool:
     return number_of_connected_components > 1
 
 
-def is_minimal_separator(graph: nx.Graph, vertexset: Set[int]) -> bool:
+def is_minimal_separator(graph: nx.Graph, vertexset: Set[str]) -> bool:
     """
     Check if a vertex set is a minimal separator in the graph.
 
     Parameters:
     - graph (nx.Graph): The input graph.
-    - vertexset (Set[int]): The set of vertices to check.
+    - vertexset (Set[str]): The set of vertices to check.
 
     Returns:
     - bool: True if the vertex set is a minimal separator, otherwise False.
