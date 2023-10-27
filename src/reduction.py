@@ -53,18 +53,18 @@ def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
     return relabeled_graph
 
 
-def is_clique(graph: nx.Graph, vertexset: Set[int]) -> bool:
+def is_clique(graph: nx.Graph, vertexset: Set[str]) -> bool:
     """
     Check if a set of vertices induces a complete subgraph (clique) in the graph.
 
     Parameters:
     - graph (nx.Graph): The input graph.
-    - vertexset (Set[int]): The set of vertices to check.
+    - vertexset (Set[str]): The set of vertices to check.
 
     Returns:
     - bool: True if the vertex set induces a complete subgraph, otherwise False.
     """
-    missing_edges: Set[Tuple[int, int]] = get_missing_edges(graph, vertexset)
+    missing_edges: Set[Tuple[str, str]] = get_missing_edges(graph, vertexset)
     return len(missing_edges) == 0
 
 
@@ -137,10 +137,10 @@ def get_missing_edges(graph: nx.Graph, vertexset: Set[str]) -> Set[Tuple[str, st
 
     Parameters:
     - graph (nx.Graph): The input graph.
-    - vertexset (Set[int]): The set of vertices whose subgraph is considered.
+    - vertexset (Set[str]): The set of vertices whose subgraph is considered.
 
     Returns:
-    - Set[Tuple[int, int]]: A set of missing edges as tuples of two vertices.
+    - Set[Tuple[str, str]]: A set of missing edges as tuples of two vertices.
 
     Description:
     Calculates the missing edges in the subgraph induced by a vertex set in the input graph.
