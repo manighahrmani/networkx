@@ -182,13 +182,13 @@ def is_simplicial(graph: nx.Graph, vertex: str) -> bool:
     return is_clique(graph, neighbors)
 
 
-def is_almost_clique(graph: nx.Graph, vertexset: Set[int]) -> bool:
+def is_almost_clique(graph: nx.Graph, vertexset: Set[str]) -> bool:
     """
     Check if a vertex set is almost a clique (becomes a clique if one vertex is removed).
 
     Parameters:
     - graph (nx.Graph): The input graph.
-    - vertexset (Set[int]): The set of vertices to check.
+    - vertexset (Set[str]): The set of vertices to check.
 
     Returns:
     - bool: True if the vertex set is almost a clique, otherwise False.
