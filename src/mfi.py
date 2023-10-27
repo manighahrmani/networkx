@@ -354,11 +354,8 @@ def run_experiments() -> None:
         print(f"Running experiment for {ROWS}x{column} grid...")
 
         # Generate the triangulated grid
-        _, chords, triangulated_grid = generate_triangulated_grid_graph(
+        _, _, _, elimination_ordering = generate_triangulated_grid_graph(
             num_rows=ROWS, num_columns=column, reduce=True)
-
-        # Calculate the elimination ordering
-        elimination_ordering = maximum_cardinality_search(triangulated_grid)
 
         with open(
             os.path.join("logs", f'{ROWS}x{column}.txt'),
@@ -370,21 +367,22 @@ def run_experiments() -> None:
                 f.write(f"{node} ")
             f.write("\n")
 
-        # Calculate the treewidth and number of added chords
-        treewidth = len(maximum_cliques[0]) - 1
-        num_added_chords = len(chords)
+        # See TODO in `generate_triangulated_grid_graph` for why this is commented out
+        # # Calculate the treewidth and number of added chords
+        # treewidth = len(maximum_cliques[0]) - 1
+        # num_added_chords = len(chords)
 
-        # Update the existing data if needed
-        if column not in existing_data or existing_data[column] != (num_added_chords, treewidth):
-            existing_data[column] = (num_added_chords, treewidth)
+        # # Update the existing data if needed
+        # if column not in existing_data or existing_data[column] != (num_added_chords, treewidth):
+        #     existing_data[column] = (num_added_chords, treewidth)
 
-    # Write the updated data back to the CSV file
-    with open(CSV_FILENAME, mode='w', newline='', encoding="utf-8") as csvfile:
-        csv_writer = csv.writer(csvfile)
-        csv_writer.writerow(
-            ['Columns', 'Rows', 'Num_Added_Chords', 'Treewidth'])
-        for column, (num_added_chords, treewidth) in sorted(existing_data.items()):
-            csv_writer.writerow([column, ROWS, num_added_chords, treewidth])
+    # # Write the updated data back to the CSV file
+    # with open(CSV_FILENAME, mode='w', newline='', encoding="utf-8") as csvfile:
+    #     csv_writer = csv.writer(csvfile)
+    #     csv_writer.writerow(
+    #         ['Columns', 'Rows', 'Num_Added_Chords', 'Treewidth'])
+    #     for column, (num_added_chords, treewidth) in sorted(existing_data.items()):
+    #         csv_writer.writerow([column, ROWS, num_added_chords, treewidth])
 
 
 run_experiments()
