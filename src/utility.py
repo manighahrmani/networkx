@@ -123,6 +123,33 @@ def write_graph_to_file(
             f.write(f"{edge[0]} {edge[1]}\n")
 
 
+def append_to_file(
+        folders: List[str],
+        filename: str,
+        content: str,
+) -> None:
+    """
+    Append the content to the specified file.
+
+    Parameters:
+    - folders (List[str]): The list of folders where the file will be saved.
+    - filename (str): The name of the file.
+    - content (str): The content to append to the file.
+
+    The function appends the content to the specified file.
+    The file is saved in the specified folders.
+    """
+    # Join the folders to form the path
+    folder_path = os.path.join(*folders)
+
+    with open(
+        os.path.join(folder_path, filename),
+        mode='a',
+        encoding='utf8'
+    ) as f:
+        f.write(content)
+
+
 def get_vertex_degree(graph: nx.Graph, vertex: Union[int, Tuple[int, int]]) -> int:
     """
     Returns the degree of a given vertex in the graph.
