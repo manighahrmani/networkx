@@ -107,24 +107,27 @@ def is_minimal_separator(graph: nx.Graph, vertexset: Set[int]) -> bool:
 
 def get_missing_edges_in_neighborhood(
         graph: nx.Graph,
-        vertex: int
-) -> Set[Tuple[int, int]]:
+        vertex: str
+) -> Set[Tuple[str, str]]:
     """
     Get missing edges in the neighborhood of a vertex.
 
     Parameters:
     - graph (nx.Graph): The input graph.
-    - vertex (int): The vertex whose neighborhood is considered.
+    - vertex (str): The vertex whose neighborhood is considered.
 
     Returns:
-    - Set[Tuple[int, int]]: A set of missing edges as tuples of two vertices.
+    - Set[Tuple[str, str]]: A set of missing edges as tuples of two vertices.
 
     Description:
     Calculates the missing edges in the neighborhood of a vertex in the input graph.
 
     """
-    neighbors: Set[int] = set(graph.neighbors(vertex))
-    missing_edges: Set[Tuple[int, int]] = get_missing_edges(graph, neighbors)
+    neighbors: Set[str] = set(graph.neighbors(vertex))
+    missing_edges: Set[Tuple[str, str]] = get_missing_edges(
+        graph=graph,
+        vertexset=neighbors
+    )
     return missing_edges
 
 
