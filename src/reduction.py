@@ -253,12 +253,16 @@ def is_almost_simplicial(graph: nx.Graph, vertex: str) -> bool:
     return is_almost_clique(graph, neighbors)
 
 
-def reduce_graph(graph: nx.Graph) -> Tuple[Set[Tuple[str, str]], List[nx.Graph], List[str]]:
+def reduce_graph(
+        graph: nx.Graph,
+        debug: bool = False
+) -> Tuple[Set[Tuple[str, str]], List[nx.Graph], List[str]]:
     """
     Reduce an input graph G to construct a minimum chordal triangulation.
 
     Parameters:
     - graph (nx.Graph): The input graph.
+    - debug (bool): If True, print debug information.
 
     Returns:
     - Tuple[Set[Tuple[str, str]], List[nx.Graph], List[str]]:
@@ -311,11 +315,14 @@ def reduce_graph(graph: nx.Graph) -> Tuple[Set[Tuple[str, str]], List[nx.Graph],
                         e: Tuple[str, str] = missing_edges.pop()
                         atom.add_edge(*e)
                         fill_edges.add(e)
-                        print(f"\t➕ Added edge {e} in the neighborhood of {v}")
+                        if debug:
+                            print(
+                                f"\t➕ Added edge {e} in the neighborhood of {v}")
 
-            print(
-                f"\tℹ️ {v} has degree {degree_v}\
-                      and the vertex connectivity is {nx.node_connectivity(atom)}")
+            if debug:
+                print(
+                    f"\tℹ️ {v} has degree {degree_v}\
+                          and the vertex connectivity is {nx.node_connectivity(atom)}")
 
             if is_simplicial(atom, v):
                 atom.remove_node(v)
@@ -333,7 +340,7 @@ def reduce_graph(graph: nx.Graph) -> Tuple[Set[Tuple[str, str]], List[nx.Graph],
                 elimination_order.append(v)
                 reason_for_elimination = "almost simplicial"
 
-            if reason_for_elimination:
+            if reason_for_elimination and debug:
                 print(f"❌ Eliminated vertex {v} ({reason_for_elimination})")
 
         atoms_vertex_set_i: List[
@@ -357,7 +364,8 @@ def reduce_graph(graph: nx.Graph) -> Tuple[Set[Tuple[str, str]], List[nx.Graph],
 
 
 def reduce_grid(
-        graph: nx.Graph
+        graph: nx.Graph,
+        debug: bool = False
 ) -> Tuple[Set[Tuple[str, str]], nx.Graph, List[str], nx.Graph]:
     """
     Reduces a grid graph, prints information about the reduction process,
@@ -367,6 +375,7 @@ def reduce_grid(
     - num_rows (int): The number of rows in the original grid.
     - num_columns (int): The number of columns in the original grid.
     - graph (nx.Graph): The original graph to be reduced.
+    - debug (bool): If True, print debug information.
 
     Returns:
     - Tuple[Set[Tuple[str, str]], nx.Graph, List[str], nx.Graph:
@@ -380,9 +389,10 @@ def reduce_grid(
     ordering: List[str] = []
     added_edges, processed_components, ordering = reduce_graph(graph)
 
-    print(f"{len(ordering)} vertices eliminated in the following order: {ordering}")
-    print(f"{len(added_edges)} edges added: {added_edges}")
-    print(f"{len(processed_components)} processed components: ")
+    if debug:
+        print(f"{len(ordering)} vertices eliminated in the following order: {ordering}")
+        print(f"{len(added_edges)} edges added: {added_edges}")
+        print(f"{len(processed_components)} processed components: ")
 
     if len(processed_components) > 1:
         raise ValueError("More than one processed component")

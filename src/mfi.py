@@ -14,7 +14,8 @@ from reduction import reduce_grid, generate_grid_graph, get_missing_edges
 
 def run_solver(
         num_rows: int,
-        num_columns: int
+        num_columns: int,
+        runWithCmd: bool = False
 ) -> List[Tuple[str, str]]:
     """
     Run an external solver to generate fill edges that triangulate the graph.
@@ -22,6 +23,7 @@ def run_solver(
     Parameters:
     - num_rows (int): The number of rows in the grid.
     - num_columns (int): The number of columns in the grid.
+    - runWithCmd (bool): Whether to run the solver with the cmd command.
 
     Returns:
     - List[Tuple[str, str]]: A list of fill edges as tuples.
@@ -46,10 +48,11 @@ def run_solver(
     script_filename: str = "run_solver.bat" if os_type == "nt" else "run_solver.sh"
     cmd: str = os.path.join(SOLVER_PATH, script_filename)
 
-    # Add the parameters to the command
-    if num_added_chords is not None:
-        cmd += f' -k={num_added_chords}'
-    cmd += ' -pmcprogress -info'
+    if runWithCmd:
+        # Add the parameters to the command
+        if num_added_chords is not None:
+            cmd += f' -k={num_added_chords}'
+        cmd += ' -pmcprogress -info'
 
     print(f"For {num_rows}x{num_columns} grid, running command: {cmd}")
 
@@ -115,10 +118,12 @@ def generate_triangulated_grid_graph(
     os.makedirs(os.path.join('images', 'triangulated'), exist_ok=True)
 
     grid: nx.Graph = generate_grid_graph(num_rows, num_columns)
-    elimination_ordering: List[str] = []
 
+    elimination_ordering: List[str] = []
     reduction_elimination: List[str] = []
+
     reduced_grid: nx.Graph = grid.copy()
+
     chords_added_in_reduction: Set[Tuple[str, str]] = set()
     chords: List[Tuple[str, str]] = []
     if reduce:
@@ -126,6 +131,7 @@ def generate_triangulated_grid_graph(
             graph=grid
         )
 
+    # Add the chords added in reduction to the list of chords
     chords += list(chords_added_in_reduction)
     elimination_ordering += reduction_elimination
 
