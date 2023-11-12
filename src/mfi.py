@@ -141,7 +141,7 @@ def generate_triangulated_grid_graph(
         num_columns=num_columns,
         graph=reduced_grid,
         folders=[SOLVER_PATH],
-        filename="graph"
+        filename="graph.txt"
     )
 
     chords_after_reduction: List[
