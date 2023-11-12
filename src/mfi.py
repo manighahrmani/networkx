@@ -15,7 +15,7 @@ from reduction import reduce_grid, generate_grid_graph, get_missing_edges
 def run_solver(
         num_rows: int,
         num_columns: int,
-        runWithCmd: bool = False
+        run_with_cmd: bool = True
 ) -> List[Tuple[str, str]]:
     """
     Run an external solver to generate fill edges that triangulate the graph.
@@ -23,7 +23,7 @@ def run_solver(
     Parameters:
     - num_rows (int): The number of rows in the grid.
     - num_columns (int): The number of columns in the grid.
-    - runWithCmd (bool): Whether to run the solver with the cmd command.
+    - run_with_cmd (bool): Whether to run the solver with the cmd command.
 
     Returns:
     - List[Tuple[str, str]]: A list of fill edges as tuples.
@@ -48,7 +48,7 @@ def run_solver(
     script_filename: str = "run_solver.bat" if os_type == "nt" else "run_solver.sh"
     cmd: str = os.path.join(SOLVER_PATH, script_filename)
 
-    if runWithCmd:
+    if run_with_cmd:
         # Add the parameters to the command
         if num_added_chords is not None:
             cmd += f' -k={num_added_chords}'
