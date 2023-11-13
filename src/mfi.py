@@ -7,7 +7,7 @@ import subprocess
 import os
 from typing import List, Tuple, Set, Dict, Optional
 import networkx as nx  # type: ignore
-from config import SOLVER_PATH, ROWS, MAX_COLUMNS, CSV_FILENAME
+from config import SOLVER_PATH, ROWS, MAX_COLUMNS, CSV_FILENAME, MIN_COLUMNS
 from utility import write_graph_to_file, save_grid_to_image, append_to_file
 from reduction import reduce_grid, generate_grid_graph, get_missing_edges
 
@@ -364,7 +364,7 @@ def run_experiments() -> None:
             for row in csv_reader:
                 existing_data[int(row[0])] = (int(row[2]), int(row[3]))
 
-    for column in range(ROWS, MAX_COLUMNS + 1):
+    for column in range(MIN_COLUMNS, MAX_COLUMNS + 1):
         print(f"Running experiment for {ROWS}x{column} grid...")
 
         # Generate the triangulated grid
