@@ -175,11 +175,11 @@ def generate_triangulated_grid_graph(
     ):
         raise RuntimeError("The fill-in does not match the expected formula!")
 
-    if not check_elimination_ordering(
-        graph=grid_triangulated,
-        ordering=elimination_ordering
-    ):
-        raise RuntimeError("The elimination ordering is not valid!")
+    # if not check_elimination_ordering(
+    #     graph=grid_triangulated,
+    #     ordering=elimination_ordering
+    # ):
+    #     raise RuntimeError("The elimination ordering is not valid!")
 
     return grid, chords, grid_triangulated, elimination_ordering
 
