@@ -184,11 +184,7 @@ def generate_triangulated_grid_graph(
     return grid, chords, grid_triangulated, elimination_ordering
 
 
-def compute_madj(
-        vertex: str,
-        ordering: List[str],
-        graph: nx.Graph
-) -> Set[str]:
+def compute_madj(vertex: str, ordering: List[str], graph: nx.Graph) -> Set[str]:
     """
     Compute the madj of a vertex based on the current ordering and graph.
 
@@ -208,9 +204,14 @@ def compute_madj(
 
     # Iterate over all vertices that come after the current vertex in the ordering
     for later_vertex in ordering[position+1:]:
-        # Check if there's a path from later_vertex to vertex that only goes through vertices
-        # earlier in the ordering than both vertex and later_vertex
-        if nx.has_path(graph, later_vertex, vertex):
+        # Check for a path where all intermediate vertices are earlier in the ordering
+        path_exists = False
+        for path in nx.all_simple_paths(graph, later_vertex, vertex):
+            if all(ordering.index(p) < position for p in path[1:-1]):
+                path_exists = True
+                break
+
+        if path_exists:
             madj.add(later_vertex)
     return madj
 
@@ -450,4 +451,4 @@ def run_experiments() -> None:
             csv_writer.writerow([column, ROWS, num_added_chords, treewidth])
 
 
-run_experiments()
+# run_experiments()

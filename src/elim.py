@@ -67,6 +67,7 @@ def main() -> None:
     for key, value in ELIMINATION_ORDERINGS.items():
         print(key)
         print(get_madj_for_ordering(key, value))
+        break
 
 
 if __name__ == "__main__":
