@@ -3,9 +3,69 @@ Elimination orderings module
 """
 
 from typing import List, Set, Tuple
-# import networkx as nx  # type: ignore
-from reduction import generate_grid_graph
-from mfi import compute_madj
+import networkx as nx  # type: ignore
+
+
+def compute_madj(vertex: str, ordering: List[str], graph: nx.Graph) -> Set[str]:
+    """
+    Compute the madj of a vertex based on the current ordering and graph.
+
+    Parameters:
+    - vertex (str): The vertex whose madj is to be computed.
+    - ordering (List[str]): The current ordering of the vertices.
+    - graph (nx.Graph): The graph.
+
+    Returns:
+    - Set[str]: The madj of the vertex.
+    """
+    # Get the position of the vertex in the ordering
+    position: int = ordering.index(vertex)
+
+    # Initialize madj
+    madj: Set[str] = set()
+
+    # Iterate over all vertices that come after the current vertex in the ordering
+    for later_vertex in ordering[position+1:]:
+        # Check for a path where all intermediate vertices are earlier in the ordering
+        path_exists = False
+        for path in nx.all_simple_paths(graph, later_vertex, vertex):
+            if all(ordering.index(p) < position for p in path[1:-1]):
+                path_exists = True
+                break
+
+        if path_exists:
+            madj.add(later_vertex)
+    return madj
+
+
+def generate_grid_graph(num_rows: int, num_columns: int) -> nx.Graph:
+    """
+    Generate a grid graph with custom vertex labels.
+
+    Parameters:
+    - num_rows (int): The number of rows in the grid.
+    - num_columns (int): The number of columns in the grid.
+
+    Returns:
+    - nx.Graph: The generated graph with custom vertex labels.
+
+    The vertex labels are of the form 1rrcc, where rr is the row number and cc is the column number.
+    """
+
+    # Generate the original grid graph
+    grid = nx.grid_2d_graph(num_rows, num_columns)
+
+    # Generate a mapping from old labels (tuples) to new labels (strings).
+    # Add a leading '1' to each label to avoid leading zeros.
+    # The new labels are of the form 1rrcc, where rr is the row number and cc is the column number.
+    mapping = {(r, c): f"1{r+1:02}{c+1:02}" for r in range(num_rows)
+               for c in range(num_columns)}
+
+    # Create a new graph with nodes relabeled
+    relabeled_graph = nx.relabel_nodes(grid, mapping)
+
+    return relabeled_graph
+
 
 ELIMINATION_ORDERINGS = {
     "5x5": "10101 10105 10501 10505 10102 10104 10201 10205 10401 10405 10502 10504 10404 10402 10303 10204 10503 10403 10305 10304 10302 10301 10203 10202 10103",
