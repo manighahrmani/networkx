@@ -1,4 +1,13 @@
-elimination = {
+"""
+Elimination orderings module
+"""
+
+from typing import List, Set, Tuple
+# import networkx as nx  # type: ignore
+from reduction import generate_grid_graph
+from mfi import compute_madj
+
+ELIMINATION_ORDERINGS = {
     "5x5": "10101 10105 10501 10505 10102 10104 10201 10205 10401 10405 10502 10504 10404 10402 10303 10204 10503 10403 10305 10304 10302 10301 10203 10202 10103",
     "5x6": "10101 10106 10501 10506 10102 10105 10201 10206 10401 10406 10502 10505 10503 10404 10402 10305 10303 10204 10405 10306 10205 10304 10504 10403 10302 10301 10203 10202 10104 10103",
     "5x7": "10101 10107 10501 10507 10102 10106 10201 10207 10401 10407 10502 10506 10505 10503 10406 10404 10402 10305 10303 10206 10204 10105 10307 10306 10405 10205 10304 10504 10403 10302 10301 10203 10202 10104 10103",
@@ -11,3 +20,54 @@ elimination = {
     "10101 10113 10501 10513 10102 10112 10201 10213 10401 10413 10502 10512 10509 10507 10505 10109 10107 10105 10511 10503 10412 10410 10408 10406 10404 10402 10311 10309 10307 10305 10303 10212 10210 10208 10206 10204 10111 10313 10312 10411 10510 10211 10310 10409 10508 10110 10209 10308 10407 10506 10108 10207 10306 10405 10106 10205 10304 10504 10403 10302 10301 10203 10202 10104 10103",
     "5x14": "10101 10114 10501 10514 10102 10113 10201 10214 10401 10414 10502 10513 10511 10509 10507 10505 10111 10109 10107 10105 10503 10412 10410 10408 10406 10404 10402 10313 10311 10309 10307 10305 10303 10212 10210 10208 10206 10204 10512 10413 10314 10213 10312 10411 10510 10112 10211 10310 10409 10508 10110 10209 10308 10407 10506 10108 10207 10306 10405 10106 10205 10304 10504 10403 10302 10301 10203 10202 10104 10103"
 }
+
+
+def get_madj_for_ordering(
+    graph_size: str,
+    elimination_ordering: str
+) -> List[Tuple[str, Set[str]]]:
+    """
+    Computes the madj list for each vertex in the given elimination ordering.
+
+    Args:
+      graph_size (str): The size of the grid graph in the format "num_rows x num_columns".
+      elimination_ordering (str): The elimination ordering as a
+      space-separated string of vertex names.
+
+    Returns:
+      List[Tuple[str, Set[str]]]: A list of tuples,
+      where each tuple contains a vertex name and its corresponding madj set.
+    """
+    # Parse the graph size
+    num_rows, num_columns = map(int, graph_size.split('x'))
+
+    # Generate the grid graph
+    graph = generate_grid_graph(num_rows, num_columns)
+
+    # Parse the elimination ordering
+    ordering = elimination_ordering.split()
+
+    # Compute madj for each vertex in the ordering
+    madj_list = [(vertex, compute_madj(vertex, ordering, graph))
+                 for vertex in ordering]
+
+    return madj_list
+
+
+def main() -> None:
+    """
+    Main function for testing.
+
+    Args:
+      None
+
+    Returns:
+      None
+    """
+    for key, value in ELIMINATION_ORDERINGS.items():
+        print(key)
+        print(get_madj_for_ordering(key, value))
+
+
+if __name__ == "__main__":
+    main()
