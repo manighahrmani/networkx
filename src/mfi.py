@@ -451,4 +451,4 @@ def run_experiments() -> None:
             csv_writer.writerow([column, ROWS, num_added_chords, treewidth])
 
 
-# run_experiments()
+run_experiments()
