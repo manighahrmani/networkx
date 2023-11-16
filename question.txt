@@ -25,6 +25,6 @@ I also have a theorem that tells me I can eliminate v at step i where madj(v) ha
 # Question
 But I don't know anything else beyond this rule for vertices that have madj with 3 or more vertices. I have come up with elimination orderings in 5xn grids for 5>=n>=14 such that the resulting triangulation has a treewidth of 5. I will show them to you and want you to observe patterns in the elimination orderings and help me come up with a rule/hypothesis about the elimination of vertices with madj of 3 or more. Is that OK?
 
-I have attached a file "elims.json" where the keys are the sizes of the grids and the values are the elimination orderings as a string (vertices are space separated).
-
-Can you find any patterns in the elimination of vertices that have madj of 3 or more?
+# Second prompt
+I have attached a file "elims.json" where the keys are the sizes of the grids e.g. "5x5" and the values are the elimination orderings as a string for example "10101 10105 10501 10505 10102 10104 10201 10205 10401 10405 10502 10504 10404 10402 10303 10204 10503 10403 10305 10304 10302 10301 10203 10202 10103" (vertices are space separated).
+Can you find any patterns in the elimination of vertices that have madj of 3 or more? Skip vertices where madj is less than 3 and the last 5 vertices (the graph becomes a clique at that point).
