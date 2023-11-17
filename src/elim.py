@@ -2,6 +2,7 @@
 Elimination orderings module
 """
 
+import csv
 from typing import List, Set, Tuple
 import networkx as nx  # type: ignore
 
@@ -124,10 +125,28 @@ def main() -> None:
     Returns:
       None
     """
-    for key, value in ELIMINATION_ORDERINGS.items():
-        print(key)
-        print(get_madj_for_ordering(key, value))
-        break
+    with open('output.csv', 'w', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        writer.writerow(
+            ["Graph Size", "Order", "Vertex", "Madj", "Size of Madj"])
+
+        first = True
+        for graph_size, elimination_ordering in ELIMINATION_ORDERINGS.items():
+            if not first:
+                writer.writerow([])  # Add a blank line between sections
+            else:
+                first = False
+
+            row, col = graph_size.split('x', maxsplit=1)
+            number_of_vertices = int(row) * int(col)
+            madj_list = get_madj_for_ordering(graph_size, elimination_ordering)
+
+            order = 1
+            for vertex, madj in madj_list:
+                if len(madj) >= 3 and order <= number_of_vertices - 5:
+                    writer.writerow(
+                        [graph_size, order, vertex, madj, len(madj)])
+                order += 1
 
 
 if __name__ == "__main__":
