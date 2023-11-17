@@ -127,7 +127,8 @@ def main() -> None:
     """
     with open('output.csv', 'w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        writer.writerow(["Graph Size", "Order", "Vertex", "Madj", "Size of Madj"])
+        writer.writerow(
+            ["Graph Size", "Order", "Vertex", "Madj", "Size of Madj"])
 
         first = True
         for graph_size, elimination_ordering in ELIMINATION_ORDERINGS.items():
@@ -139,13 +140,17 @@ def main() -> None:
             print(f"Processing {graph_size}...")
 
             row, col = graph_size.split('x', maxsplit=1)
+
+            if col <= 7:  # Skip graphs with less than 8 columns
+                continue
             number_of_vertices = int(row) * int(col)
             madj_list = get_madj_for_ordering(graph_size, elimination_ordering)
 
             order = 1
             for vertex, madj in madj_list:
                 if len(madj) >= 3 and order <= number_of_vertices - 5:
-                    writer.writerow([graph_size, order, vertex, madj, len(madj)])
+                    writer.writerow(
+                        [graph_size, order, vertex, madj, len(madj)])
                     file.flush()  # Flush the file buffer
                 order += 1
 
