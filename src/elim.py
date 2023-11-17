@@ -137,6 +137,8 @@ def main() -> None:
             else:
                 first = False
 
+            print(f"Processing {graph_size}...")
+
             row, col = graph_size.split('x', maxsplit=1)
             number_of_vertices = int(row) * int(col)
             madj_list = get_madj_for_ordering(graph_size, elimination_ordering)
