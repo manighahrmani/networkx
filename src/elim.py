@@ -140,9 +140,6 @@ def main() -> None:
             print(f"Processing {graph_size}...")
 
             row, col = graph_size.split('x', maxsplit=1)
-
-            if col <= 7:  # Skip graphs with less than 8 columns
-                continue
             number_of_vertices = int(row) * int(col)
             madj_list = get_madj_for_ordering(graph_size, elimination_ordering)
 
