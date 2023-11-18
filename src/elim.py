@@ -178,11 +178,12 @@ def main() -> None:
 
             row, col = graph_size.split('x', maxsplit=1)
 
-            if int(col) < 9:
-                continue
+            # if int(col) < 9:
+            #     continue
 
             number_of_vertices = int(row) * int(col)
             madj_list = get_madj_for_ordering(graph_size, elimination_ordering)
+            print(madj_list)
 
             order = 1
             for vertex, madj in madj_list:
