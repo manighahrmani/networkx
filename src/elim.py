@@ -83,6 +83,43 @@ ELIMINATION_ORDERINGS = {
 }
 
 
+def efficient_path_check(start_vertex, end_vertex, graph, index_map) -> bool:
+    """
+    Check if there is an efficient path between two vertices.
+
+    Args:
+    - start_vertex (str): The starting vertex.
+    - end_vertex (str): The ending vertex.
+    - graph (nx.Graph): The graph.
+    - index_map (dict): A mapping from vertex labels to their positions in the ordering.
+
+    Returns:
+    - bool: True if there is an efficient path between the two vertices, False otherwise.
+    """
+    # Convert vertex labels to grid coordinates
+    def label_to_coords(label):
+        label = label[1:]  # Remove the leading '1'
+        # Adjust for 1-indexing in label
+        return int(label[:2]) - 1, int(label[2:]) - 1
+
+    start_coords = label_to_coords(start_vertex)
+    end_coords = label_to_coords(end_vertex)
+
+    # Check if there's a higher-ordered vertex in the path
+    if start_coords[0] == end_coords[0]:  # Same row
+        for col in range(min(start_coords[1], end_coords[1]) + 1, max(start_coords[1], end_coords[1])):
+            intermediate_vertex = f"1{start_coords[0]+1:02}{col+1:02}"
+            if intermediate_vertex in index_map and index_map[intermediate_vertex] < index_map[start_vertex]:
+                return False
+    elif start_coords[1] == end_coords[1]:  # Same column
+        for row in range(min(start_coords[0], end_coords[0]) + 1, max(start_coords[0], end_coords[0])):
+            intermediate_vertex = f"1{row+1:02}{start_coords[1]+1:02}"
+            if intermediate_vertex in index_map and index_map[intermediate_vertex] < index_map[start_vertex]:
+                return False
+
+    return True
+
+
 def get_madj_for_ordering(
     graph_size: str,
     elimination_ordering: str
