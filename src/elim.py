@@ -102,9 +102,6 @@ def get_madj_for_ordering(
     # Parse the graph size
     num_rows, num_columns = map(int, graph_size.split('x'))
 
-    if num_columns <= 9:
-        continue  # Skip this graph size
-
     # Generate the grid graph
     graph = generate_grid_graph(num_rows, num_columns)
 
@@ -143,6 +140,10 @@ def main() -> None:
             print(f"Processing {graph_size}...")
 
             row, col = graph_size.split('x', maxsplit=1)
+
+            if int(col) <= 9:
+                continue
+
             number_of_vertices = int(row) * int(col)
             madj_list = get_madj_for_ordering(graph_size, elimination_ordering)
 
