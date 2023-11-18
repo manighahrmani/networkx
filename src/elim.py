@@ -141,7 +141,7 @@ def main() -> None:
 
             row, col = graph_size.split('x', maxsplit=1)
 
-            if int(col) <= 9:
+            if int(col) < 9:
                 continue
 
             number_of_vertices = int(row) * int(col)
