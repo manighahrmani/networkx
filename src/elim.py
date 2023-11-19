@@ -7,6 +7,35 @@ from typing import List, Set, Tuple, Dict
 import networkx as nx  # type: ignore
 
 
+def is_valid_path(
+        graph: nx.Graph,
+        start: str,
+        end: str,
+        vertex_position: int,
+        position_dict: Dict[str, int]
+) -> bool:
+    """
+    Check if there's a valid path from start to end such that all intermediate vertices
+    are earlier in the ordering than the specified vertex position.
+    """
+    visited: Set[str] = set()
+    stack: List[str] = [start]
+
+    while stack:
+        current: str = stack.pop()
+        if current == end:
+            return True
+
+        visited.add(current)
+        for neighbor in graph.neighbors(current):
+            # Only consider neighbors not visited and coming earlier in the ordering than 'end'
+            if neighbor not in visited and \
+                    (neighbor == end or position_dict[neighbor] < vertex_position):
+                stack.append(neighbor)
+
+    return False
+
+
 def compute_madj(
         vertex: str,
         ordering: List[str],
@@ -16,10 +45,7 @@ def compute_madj(
     """
     Compute the madj of a vertex based on the current ordering and graph.
     """
-    # Create a dictionary mapping vertices to their positions in the ordering
     vertex_position: int = position_dict[vertex]
-
-    # Initialize madj
     madj: Set[str] = set()
 
     # Check direct neighbors that are later in the ordering
@@ -27,15 +53,11 @@ def compute_madj(
         if position_dict[neighbor] > vertex_position:
             madj.add(neighbor)
 
-    # Iterate over all vertices that come after the current vertex in the ordering
+    # Check for non-neighbors that are later in the ordering
     for later_vertex in ordering[vertex_position + 1:]:
-        # Only check for non-neighbors as neighbors are already handled
         if later_vertex not in graph[vertex]:
-            # Check if a valid path exists
-            for path in nx.all_simple_paths(graph, later_vertex, vertex):
-                if all(position_dict[p] < vertex_position for p in path[1:-1]):
-                    madj.add(later_vertex)
-                    break
+            if is_valid_path(graph, later_vertex, vertex, vertex_position, position_dict):
+                madj.add(later_vertex)
 
     return madj
 
@@ -82,43 +104,6 @@ ELIMINATION_ORDERINGS = {
     "10101 10113 10501 10513 10102 10112 10201 10213 10401 10413 10502 10512 10509 10507 10505 10109 10107 10105 10511 10503 10412 10410 10408 10406 10404 10402 10311 10309 10307 10305 10303 10212 10210 10208 10206 10204 10111 10313 10312 10411 10510 10211 10310 10409 10508 10110 10209 10308 10407 10506 10108 10207 10306 10405 10106 10205 10304 10504 10403 10302 10301 10203 10202 10104 10103",
     "5x14": "10101 10114 10501 10514 10102 10113 10201 10214 10401 10414 10502 10513 10511 10509 10507 10505 10111 10109 10107 10105 10503 10412 10410 10408 10406 10404 10402 10313 10311 10309 10307 10305 10303 10212 10210 10208 10206 10204 10512 10413 10314 10213 10312 10411 10510 10112 10211 10310 10409 10508 10110 10209 10308 10407 10506 10108 10207 10306 10405 10106 10205 10304 10504 10403 10302 10301 10203 10202 10104 10103"
 }
-
-
-def efficient_path_check(start_vertex, end_vertex, graph, index_map) -> bool:
-    """
-    Check if there is an efficient path between two vertices.
-
-    Args:
-    - start_vertex (str): The starting vertex.
-    - end_vertex (str): The ending vertex.
-    - graph (nx.Graph): The graph.
-    - index_map (dict): A mapping from vertex labels to their positions in the ordering.
-
-    Returns:
-    - bool: True if there is an efficient path between the two vertices, False otherwise.
-    """
-    # Convert vertex labels to grid coordinates
-    def label_to_coords(label):
-        label = label[1:]  # Remove the leading '1'
-        # Adjust for 1-indexing in label
-        return int(label[:2]) - 1, int(label[2:]) - 1
-
-    start_coords = label_to_coords(start_vertex)
-    end_coords = label_to_coords(end_vertex)
-
-    # Check if there's a higher-ordered vertex in the path
-    if start_coords[0] == end_coords[0]:  # Same row
-        for col in range(min(start_coords[1], end_coords[1]) + 1, max(start_coords[1], end_coords[1])):
-            intermediate_vertex = f"1{start_coords[0]+1:02}{col+1:02}"
-            if intermediate_vertex in index_map and index_map[intermediate_vertex] < index_map[start_vertex]:
-                return False
-    elif start_coords[1] == end_coords[1]:  # Same column
-        for row in range(min(start_coords[0], end_coords[0]) + 1, max(start_coords[0], end_coords[0])):
-            intermediate_vertex = f"1{row+1:02}{start_coords[1]+1:02}"
-            if intermediate_vertex in index_map and index_map[intermediate_vertex] < index_map[start_vertex]:
-                return False
-
-    return True
 
 
 def get_madj_for_ordering(
