@@ -163,9 +163,7 @@ def main() -> None:
 
         first = True
         for graph_size, elimination_ordering in ELIMINATION_ORDERINGS.items():
-            if not first:
-                writer.writerow([])  # Add a blank line between sections
-            else:
+            if first:
                 first = False
 
             print(f"Processing {graph_size}...")
