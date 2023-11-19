@@ -236,7 +236,8 @@ def main() -> None:
                 madj_list=madj_list,
                 graph=graph
             )
-            print(extended_madj_list)
+            for step, (vertex, madj, edges) in enumerate(extended_madj_list):
+                print(f"{step}: {vertex} {madj} {edges}")
 
             order = 1
             for vertex, madj in madj_list:
