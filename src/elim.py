@@ -109,7 +109,7 @@ ELIMINATION_ORDERINGS = {
 def get_madj_for_ordering(
     graph_size: str,
     elimination_ordering: str
-) -> List[Tuple[str, Set[str]]]:
+) -> Tuple[List[Tuple[str, Set[str]]], nx.Graph]:
     """
     Computes the madj list for each vertex in the given elimination ordering.
 
@@ -119,8 +119,8 @@ def get_madj_for_ordering(
       space-separated string of vertex names.
 
     Returns:
-      List[Tuple[str, Set[str]]]: A list of tuples,
-      where each tuple contains a vertex name and its corresponding madj set.
+        Tuple[List[Tuple[str, Set[str]]], nx.Graph]: The madj list for each vertex in the ordering
+        and the original input graph.
     """
     # Parse the graph size
     num_rows, num_columns = map(int, graph_size.split('x'))
@@ -143,7 +143,57 @@ def get_madj_for_ordering(
     ))
         for vertex in ordering]
 
-    return madj_list
+    return madj_list, graph
+
+
+def extend_madj_list(
+    madj_list: List[Tuple[str, Set[str]]],
+    graph: nx.Graph
+) -> List[Tuple[str, Set[str], Set[Tuple[str, str]]]]:
+    """
+    Extend madj_list with edges between vertices in the madj of each vertex.
+
+    Parameters:
+    - madj_list (List[Tuple[str, Set[str]]]): List of vertices and their madj in order.
+    - graph (nx.Graph): The original input graph.
+
+    Returns:
+    - List[Tuple[str, Set[str], Set[Tuple[str, str]]]]: Extended madj_list with edges in madj.
+    """
+    extended_madj_list: List[Tuple[str, Set[str], Set[Tuple[str, str]]]] = []
+    madj_dict: Dict[str, Set[str]] = {
+        vertex: madj for vertex, madj in madj_list
+    }
+    position_dict: Dict[str, int] = {
+        vertex: index for index, (vertex, _) in enumerate(madj_list)
+    }
+
+    for vertex, madj in madj_list:
+        edges_in_madj: Set[Tuple[str, str]] = set()
+
+        for u in madj:
+            for w in madj:
+                if u != w:
+                    # Check if (u, w) was already an edge in the input graph
+                    if graph.has_edge(u, w):
+                        edge: Tuple[str, str] = (u, w)
+                        if w < u:
+                            edge = (w, u)
+                        edges_in_madj.add(edge)
+                    else:
+                        # Check if u and w were both in the madj at an earlier step
+                        for earlier_vertex, earlier_madj in madj_dict.items():
+                            if position_dict[earlier_vertex] < position_dict[vertex] and \
+                                    u in earlier_madj and w in earlier_madj:
+                                edge = (u, w)
+                                if w < u:
+                                    edge = (w, u)
+                                edges_in_madj.add(edge)
+                                break  # No need to check further once a match is found
+
+        extended_madj_list.append((vertex, madj, edges_in_madj))
+
+    return extended_madj_list
 
 
 def main() -> None:
@@ -174,8 +224,19 @@ def main() -> None:
             #     continue
 
             number_of_vertices = int(row) * int(col)
-            madj_list = get_madj_for_ordering(graph_size, elimination_ordering)
-            print(madj_list)
+            madj_list: List[Tuple[str, Set[str]]] = []
+            graph = nx.Graph()
+            madj_list, graph = get_madj_for_ordering(
+                graph_size=graph_size,
+                elimination_ordering=elimination_ordering
+            )
+            # print(madj_list)
+
+            extended_madj_list: List[Tuple[str, Set[str], Set[Tuple[str, str]]]] = extend_madj_list(
+                madj_list=madj_list,
+                graph=graph
+            )
+            print(extended_madj_list)
 
             order = 1
             for vertex, madj in madj_list:
