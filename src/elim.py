@@ -3,39 +3,40 @@ Elimination orderings module
 """
 
 import csv
-from typing import List, Set, Tuple
+from typing import List, Set, Tuple, Dict
 import networkx as nx  # type: ignore
 
 
-def compute_madj(vertex: str, ordering: List[str], graph: nx.Graph) -> Set[str]:
+def compute_madj(
+        vertex: str,
+        ordering: List[str],
+        graph: nx.Graph,
+        position_dict: Dict[str, int]
+) -> Set[str]:
     """
     Compute the madj of a vertex based on the current ordering and graph.
-
-    Parameters:
-    - vertex (str): The vertex whose madj is to be computed.
-    - ordering (List[str]): The current ordering of the vertices.
-    - graph (nx.Graph): The graph.
-
-    Returns:
-    - Set[str]: The madj of the vertex.
     """
-    # Get the position of the vertex in the ordering
-    position: int = ordering.index(vertex)
+    # Create a dictionary mapping vertices to their positions in the ordering
+    vertex_position: int = position_dict[vertex]
 
     # Initialize madj
     madj: Set[str] = set()
 
-    # Iterate over all vertices that come after the current vertex in the ordering
-    for later_vertex in ordering[position+1:]:
-        # Check for a path where all intermediate vertices are earlier in the ordering
-        path_exists = False
-        for path in nx.all_simple_paths(graph, later_vertex, vertex):
-            if all(ordering.index(p) < position for p in path[1:-1]):
-                path_exists = True
-                break
+    # Check direct neighbors that are later in the ordering
+    for neighbor in graph.neighbors(vertex):
+        if position_dict[neighbor] > vertex_position:
+            madj.add(neighbor)
 
-        if path_exists:
-            madj.add(later_vertex)
+    # Iterate over all vertices that come after the current vertex in the ordering
+    for later_vertex in ordering[vertex_position + 1:]:
+        # Only check for non-neighbors as neighbors are already handled
+        if later_vertex not in graph[vertex]:
+            # Check if a valid path exists
+            for path in nx.all_simple_paths(graph, later_vertex, vertex):
+                if all(position_dict[p] < vertex_position for p in path[1:-1]):
+                    madj.add(later_vertex)
+                    break
+
     return madj
 
 
@@ -145,9 +146,17 @@ def get_madj_for_ordering(
     # Parse the elimination ordering
     ordering = elimination_ordering.split()
 
+    # Create a dictionary mapping vertices to their positions in the ordering
+    position_dict: Dict[str, int] = {v: i for i, v in enumerate(ordering)}
+
     # Compute madj for each vertex in the ordering
-    madj_list = [(vertex, compute_madj(vertex, ordering, graph))
-                 for vertex in ordering]
+    madj_list = [(vertex, compute_madj(
+        vertex=vertex,
+        ordering=ordering,
+        graph=graph,
+        position_dict=position_dict
+    ))
+        for vertex in ordering]
 
     return madj_list
 
