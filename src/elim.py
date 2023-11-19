@@ -209,7 +209,7 @@ def main() -> None:
     with open('output.csv', 'w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         writer.writerow(
-            ["Graph Size", "Order", "Vertex", "Madj", "Size of Madj"])
+            ["Graph Size", "Order", "Vertex", "Madj", "Edges in Madj", "Size of Madj"])
 
         first = True
         for graph_size, elimination_ordering in ELIMINATION_ORDERINGS.items():
@@ -240,11 +240,11 @@ def main() -> None:
                 print(f"{step}: {vertex} {madj} {edges}")
 
             order = 1
-            for vertex, madj in madj_list:
+            for vertex, madj, edges in extended_madj_list:
                 # if len(madj) >= 3 and order <= number_of_vertices - 5:
                 if len(madj) >= 2 and len(madj) <= 4:
                     writer.writerow(
-                        [graph_size, order, vertex, madj, len(madj)])
+                        [graph_size, order, vertex, madj, edges, len(madj)])
                     file.flush()  # Flush the file buffer
                 else:
                     break
