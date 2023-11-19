@@ -21,12 +21,3 @@ I already have a theorem that tells me how to safely eliminate vertices where th
 
 # Existing theorems (where madj of a vertex has 3 vertices with other restrictions)
 I also have a theorem that tells me I can eliminate v at step i where madj(v) had n vertices if G_{i_{i-1}} has the vertex connectivity of n and madj(v) is an almost clique in G_{i-{i-1}} (almost clique means that there exists a vertex u in madj(v) such that madj(v)-u is a clique). For example, after 10101, 10105, 10501 and 10505 are eliminated in the 5x5 grid, the resulting graph becomes 3-connected and I know I can eliminate 10405 next because its madj is {10305, 10404, 10504} and {10404, 10504} is a clique in G_{i_{i-1}} so {10305, 10404, 10504} is an almost clique.
-
-# Question
-But I don't know anything else beyond this rule for vertices that have madj with 3 or more vertices. I have come up with elimination orderings in 5xn grids for 5>=n>=14 such that the resulting triangulation has a treewidth of 5. I will show them to you and want you to observe patterns in the elimination orderings and help me come up with a rule/hypothesis about the elimination of vertices with madj of 3 or more. Is that OK?
-
-# Second prompt
-I have attached a file "elim.py" which contains a constant called `ELIMINATION_ORDERINGS` which is a dictionary where the keys are the sizes of the grids as a string e.g. "5x5" and the values are the elimination orderings as a string for example "10101 10105 10501 10505 10102 10104 10201 10205 10401 10405 10502 10504 10404 10402 10303 10204 10503 10403 10305 10304 10302 10301 10203 10202 10103" (vertices are space separated).
-The file also contains a function `get_madj_for_ordering` that returns a list of tuples where the first element is a vertex and the second element is a set of vertices in its madj.
-
-Can you use them to find patterns in the elimination of vertices that have madj of 3 or more? Skip vertices where madj is less than 3 and the last 5 vertices (the graph becomes a clique at that point).
