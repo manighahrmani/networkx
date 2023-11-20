@@ -218,12 +218,12 @@ def main() -> None:
 
             print(f"Processing {graph_size}...")
 
-            row, col = graph_size.split('x', maxsplit=1)
+            _, col = graph_size.split('x', maxsplit=1)
 
-            # if int(col) < 9:
-            #     continue
+            if int(col) >= 9:
+                break
 
-            number_of_vertices = int(row) * int(col)
+            # number_of_vertices = int(row) * int(col)
             madj_list: List[Tuple[str, Set[str]]] = []
             graph = nx.Graph()
             madj_list, graph = get_madj_for_ordering(
