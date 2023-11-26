@@ -203,7 +203,7 @@ def extend_madj_list_with_graph_operations(
 ) -> List[Tuple[str, Set[str], Set[Tuple[str, str]], int]]:
     """
     Extend madj_list with edges between vertices in the madj of each vertex
-    and add the vertex connectivity of the graph at each step.
+    and add vertex connectivity.
 
     Parameters:
     - madj_list (List[Tuple[str, Set[str]]]): List of vertices and their madj in order.
@@ -211,29 +211,51 @@ def extend_madj_list_with_graph_operations(
 
     Returns:
     - List[Tuple[str, Set[str], Set[Tuple[str, str]], int]]:
-      Extended madj_list with edges in madj and vertex connectivity.
+    Extended madj_list with edges in madj and vertex connectivity.
     """
-    graph_copy = graph.copy()
     extended_madj_list: List[Tuple[str, Set[str],
                                    Set[Tuple[str, str]], int]] = []
+    madj_dict: Dict[str, Set[str]] = {
+        vertex: madj for vertex, madj in madj_list
+    }
+    position_dict: Dict[str, int] = {
+        vertex: index for index, (vertex, _) in enumerate(madj_list)
+    }
+
+    graph_copy = graph.copy()
 
     for vertex, madj in madj_list:
-        # Calculate vertex connectivity
-        vertex_connectivity: int = 0
-        # If the graph is null, set the vertex connectivity to 0
-        if not graph_copy.number_of_nodes() == 0:
-            vertex_connectivity = nx.node_connectivity(graph_copy)
-
-        # Get missing edges in the neighborhood and add them to the graph
+        edges_in_madj: Set[Tuple[str, str]] = set()
         missing_edges = get_missing_edges_in_neighborhood(graph_copy, vertex)
-        graph_copy.add_edges_from(missing_edges)
 
-        # Remove the vertex from the graph
-        graph_copy.remove_node(vertex)
+        vertex_connectivity = nx.node_connectivity(graph_copy)
 
-        # Store the information in the extended madj list
+        for missing_edge in missing_edges:
+            graph_copy.add_edge(*missing_edge)
+
+        for u in madj:
+            for w in madj:
+                if u != w:
+                    # Check if (u, w) was already an edge in the input graph
+                    if graph.has_edge(u, w):
+                        edge: Tuple[str, str] = (u, w)
+                        if w < u:
+                            edge = (w, u)
+                        edges_in_madj.add(edge)
+                    else:
+                        # Check if u and w were both in the madj at an earlier step
+                        for earlier_vertex, earlier_madj in madj_dict.items():
+                            if position_dict[earlier_vertex] < position_dict[vertex] and \
+                                    u in earlier_madj and w in earlier_madj:
+                                edge = (u, w)
+                                if w < u:
+                                    edge = (w, u)
+                                edges_in_madj.add(edge)
+                                break  # No need to check further once a match is found
+
         extended_madj_list.append(
-            (vertex, madj, missing_edges, vertex_connectivity))
+            (vertex, madj, edges_in_madj, vertex_connectivity))
+        graph_copy.remove_node(vertex)
 
     return extended_madj_list
 
