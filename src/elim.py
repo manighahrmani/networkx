@@ -218,18 +218,18 @@ def extend_madj_list_with_graph_operations(
                                    Set[Tuple[str, str]], int]] = []
 
     for vertex, madj in madj_list:
+        # Calculate vertex connectivity
+        vertex_connectivity: int = 0
+        # If the graph is null, set the vertex connectivity to 0
+        if not graph_copy.number_of_nodes() == 0:
+            vertex_connectivity = nx.node_connectivity(graph_copy)
+
         # Get missing edges in the neighborhood and add them to the graph
         missing_edges = get_missing_edges_in_neighborhood(graph_copy, vertex)
         graph_copy.add_edges_from(missing_edges)
 
         # Remove the vertex from the graph
         graph_copy.remove_node(vertex)
-
-        # Calculate vertex connectivity
-        vertex_connectivity: int = 0
-        # If the graph is null, set the vertex connectivity to 0
-        if not graph_copy.number_of_nodes() == 0:
-            vertex_connectivity = nx.node_connectivity(graph_copy)
 
         # Store the information in the extended madj list
         extended_madj_list.append(
