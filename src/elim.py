@@ -5,7 +5,7 @@ Elimination orderings module
 import csv
 from typing import List, Set, Tuple, Dict
 import networkx as nx  # type: ignore
-from src.reduction import get_missing_edges_in_neighborhood
+from reduction import get_missing_edges_in_neighborhood
 
 
 def is_valid_path(
