@@ -292,7 +292,7 @@ def main() -> None:
 
             _, col = graph_size.split('x', maxsplit=1)
 
-            if int(col) < 8 or int(col) > 11:
+            if int(col) < 8:
                 continue
 
             madj_list, graph = get_madj_for_ordering(
