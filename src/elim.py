@@ -226,7 +226,10 @@ def extend_madj_list_with_graph_operations(
         graph_copy.remove_node(vertex)
 
         # Calculate vertex connectivity
-        vertex_connectivity = nx.node_connectivity(graph_copy)
+        vertex_connectivity: int = 0
+        # If the graph is null, set the vertex connectivity to 0
+        if not graph_copy.number_of_nodes() == 0:
+            vertex_connectivity = nx.node_connectivity(graph_copy)
 
         # Store the information in the extended madj list
         extended_madj_list.append(
