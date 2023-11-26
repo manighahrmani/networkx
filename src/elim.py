@@ -248,7 +248,7 @@ def main() -> None:
     with open('output.csv', 'w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         writer.writerow(
-            ["Graph Size", "Order", "Vertex", "Madj", "Edges in Madj", "Size of Madj"])
+            ["Graph Size", "Order", "Vertex", "Madj", "Edges in Madj", "Size of Madj", "Vertex Connectivity"])
 
         first = True
         for graph_size, elimination_ordering in ELIMINATION_ORDERINGS.items():
@@ -262,28 +262,23 @@ def main() -> None:
             if int(col) >= 9:
                 break
 
-            # number_of_vertices = int(row) * int(col)
-            madj_list: List[Tuple[str, Set[str]]] = []
-            graph = nx.Graph()
             madj_list, graph = get_madj_for_ordering(
                 graph_size=graph_size,
                 elimination_ordering=elimination_ordering
             )
-            # print(madj_list)
 
-            extended_madj_list: List[Tuple[str, Set[str], Set[Tuple[str, str]]]] = extend_madj_list(
+            extended_madj_list = extend_madj_list_with_graph_operations(
                 madj_list=madj_list,
                 graph=graph
             )
-            for step, (vertex, madj, edges) in enumerate(extended_madj_list):
-                print(f"{step}: {vertex} {madj} {edges}")
+            for step, (vertex, madj, edges, vertex_connectivity) in enumerate(extended_madj_list):
+                print(f"{step}: {vertex} {madj} {edges} {vertex_connectivity}")
 
             order = 1
-            for vertex, madj, edges in extended_madj_list:
-                # if len(madj) >= 3 and order <= number_of_vertices - 5:
+            for vertex, madj, edges, vertex_connectivity in extended_madj_list:
                 if len(madj) >= 2 and len(madj) <= 4:
                     writer.writerow(
-                        [graph_size, order, vertex, madj, edges, len(madj)])
+                        [graph_size, order, vertex, madj, edges, len(madj), vertex_connectivity])
                     file.flush()  # Flush the file buffer
                 else:
                     break
