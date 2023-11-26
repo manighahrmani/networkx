@@ -273,7 +273,15 @@ def main() -> None:
     with open('output.csv', 'w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         writer.writerow(
-            ["Graph Size", "Order", "Vertex", "Madj", "Edges in Madj", "Size of Madj", "Vertex Connectivity"])
+            [
+                "Graph Size",
+                "Order",
+                "Vertex",
+                "Madj",
+                "Edges in Madj",
+                "Size of Madj",
+                "Vertex Connectivity"
+            ])
 
         first = True
         for graph_size, elimination_ordering in ELIMINATION_ORDERINGS.items():
