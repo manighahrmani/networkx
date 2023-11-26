@@ -5,6 +5,7 @@ Elimination orderings module
 import csv
 from typing import List, Set, Tuple, Dict
 import networkx as nx  # type: ignore
+from src.reduction import get_missing_edges_in_neighborhood
 
 
 def is_valid_path(
@@ -192,6 +193,44 @@ def extend_madj_list(
                                 break  # No need to check further once a match is found
 
         extended_madj_list.append((vertex, madj, edges_in_madj))
+
+    return extended_madj_list
+
+
+def extend_madj_list_with_graph_operations(
+    madj_list: List[Tuple[str, Set[str]]],
+    graph: nx.Graph
+) -> List[Tuple[str, Set[str], Set[Tuple[str, str]], int]]:
+    """
+    Extend madj_list with edges between vertices in the madj of each vertex
+    and add the vertex connectivity of the graph at each step.
+
+    Parameters:
+    - madj_list (List[Tuple[str, Set[str]]]): List of vertices and their madj in order.
+    - graph (nx.Graph): The original input graph.
+
+    Returns:
+    - List[Tuple[str, Set[str], Set[Tuple[str, str]], int]]:
+      Extended madj_list with edges in madj and vertex connectivity.
+    """
+    graph_copy = graph.copy()
+    extended_madj_list: List[Tuple[str, Set[str],
+                                   Set[Tuple[str, str]], int]] = []
+
+    for vertex, madj in madj_list:
+        # Get missing edges in the neighborhood and add them to the graph
+        missing_edges = get_missing_edges_in_neighborhood(graph_copy, vertex)
+        graph_copy.add_edges_from(missing_edges)
+
+        # Remove the vertex from the graph
+        graph_copy.remove_node(vertex)
+
+        # Calculate vertex connectivity
+        vertex_connectivity = nx.node_connectivity(graph_copy)
+
+        # Store the information in the extended madj list
+        extended_madj_list.append(
+            (vertex, madj, missing_edges, vertex_connectivity))
 
     return extended_madj_list
 
